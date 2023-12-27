@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: ratelimit-service
+
+intuit:
+  ratelimit:
+    enabled: true
+    repository: REDIS
+    service:
+      serviceA:
+          limit: 10
+          refreshInterval: 60
+          type:
+            - origin
+          client:
+              ClientA:
+                clientLimit: 2
+                clientRefreshInterval: 78
+              ClientB:
+                clientLimit: 21
+                clientRefreshInterval: 45
