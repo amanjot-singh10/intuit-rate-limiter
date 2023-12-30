@@ -4,8 +4,8 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.Collection;
 import java.util.Map;
-import com.intuit.ratelimiter.configurations.RateLimiterProperties1.*;
-import com.intuit.ratelimiter.constants.RateLimitType;
+
+import com.intuit.ratelimiter.configurations.RateLimiterProperties;
 
 public class PoliciesValidator implements ConstraintValidator<Policies, Object> {
 
@@ -32,14 +32,11 @@ public class PoliciesValidator implements ConstraintValidator<Policies, Object> 
     }
 
     private boolean isValidObject(Object o) {
-        return (o instanceof Policy) && isValidPolicy((Policy) o);
+        return (o instanceof RateLimiterProperties.Policy) && isValidPolicy((RateLimiterProperties.Policy) o);
     }
 
-    private boolean isValidPolicy(Policy policy) {
-        return (policy.getLimit() != null) && isValid(policy);
+    private boolean isValidPolicy(RateLimiterProperties.Policy policy) {
+        return (policy.getLimit()!=0 && policy.getRefreshInterval()!=0);
     }
 
-    private boolean isValid(Policy policy) {
-        return policy.getType().stream().allMatch(type -> type instanceof RateLimitType);
-    }
 }

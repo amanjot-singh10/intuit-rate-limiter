@@ -16,15 +16,13 @@ redis:
 
 intuit:
   ratelimit:
-    algorithm: SLIDING
+    algorithm: FIXED
     enabled: true
     repository: REDIS
     service:
       serviceA:
           limit: 10
           refreshInterval: 60
-          type:
-            - origin
           client:
               clientA:
                 clientLimit: 2
@@ -32,3 +30,19 @@ intuit:
               clientB:
                 clientLimit: 21
                 clientRefreshInterval: 45
+      serviceB:
+        limit: 1
+        refreshInterval: 10
+        client:
+          clientA:
+            clientLimit: 2
+            clientRefreshInterval: 20
+          clientB:
+            clientLimit: 10
+            clientRefreshInterval: 45
+      serviceC:
+        limit: 1
+        refreshInterval: 10
+      serviceD:
+        limit: 1
+        refreshInterval: 10

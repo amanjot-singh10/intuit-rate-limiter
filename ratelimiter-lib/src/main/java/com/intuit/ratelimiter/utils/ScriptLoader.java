@@ -1,6 +1,8 @@
 package com.intuit.ratelimiter.utils;
 
 import com.intuit.ratelimiter.exception.FileLoadException;
+import com.intuit.ratelimiter.exception.ScriptFoundException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,19 +12,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+//TODO this class doesn't look like util class
+@Slf4j
 public class ScriptLoader {
 
     private final AtomicReference<String> storedScript;
 
-    public ScriptLoader(String scriptPath) {
+    public ScriptLoader(String scriptPath) throws ScriptFoundException {
         this.storedScript = new AtomicReference<>(loadScript(scriptPath));;
     }
 
-    private String loadScript(String scriptPath) {
+    private String loadScript(String scriptPath) throws ScriptFoundException {
         URL url = ScriptLoader.class.getClassLoader().getResource(scriptPath);
         String script = "";
         if (url == null) {
-            throw new IllegalArgumentException("script sliding-window-ratelimit.lua not found");
+            throw new ScriptFoundException(String.format("Script %s not found", scriptPath));
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {

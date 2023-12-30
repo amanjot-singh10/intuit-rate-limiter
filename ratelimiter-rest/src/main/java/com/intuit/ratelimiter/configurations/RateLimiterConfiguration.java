@@ -1,18 +1,16 @@
 package com.intuit.ratelimiter.configurations;
 
-import com.intuit.ratelimiter.constants.RateLimitType;
 import com.intuit.ratelimiter.core.FixedWindowRateLimiter;
 import com.intuit.ratelimiter.core.RateLimiter;
 import com.intuit.ratelimiter.core.SlidingWindowRateLimiter;
 import com.intuit.ratelimiter.filters.RateLimitFilter;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
-import jakarta.servlet.Filter;
+import com.intuit.ratelimiter.exception.ScriptFoundException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 
 import java.util.*;
 
@@ -25,6 +23,7 @@ public class RateLimiterConfiguration {
         RateLimiterProperties rateLimiterProperties = new RateLimiterProperties();
         rateLimiterProperties.setEnabled(rateProperties.isEnabled());
         rateLimiterProperties.setRepository(rateProperties.getRepository());
+        rateLimiterProperties.setAlgorithm(rateProperties.getAlgorithm());
 
         Map<String, RateProperties.Policy> map = rateProperties.getService();
         Map<String, RateLimiterProperties.Policy> mapCopy = new HashMap<>();
@@ -34,13 +33,6 @@ public class RateLimiterConfiguration {
             policyCopy.setLimit(policy.getLimit());
             policyCopy.setRefreshInterval(policy.getRefreshInterval());
             List<RateProperties.Policy.MatchType> matchTypeList = policy.getType();
-            List<RateLimiterProperties.Policy.MatchType> matchTypeListCopy = new ArrayList<>();
-            for(RateProperties.Policy.MatchType matchType : matchTypeList){
-                RateLimiterProperties.Policy.MatchType matchTypeCopy = new RateLimiterProperties.Policy.MatchType();
-                matchTypeCopy.setType(RateLimitType.valueOf(matchType.getType().toUpperCase(Locale.ROOT)));
-            }
-            policyCopy.setType(matchTypeListCopy);
-
             Map<String, RateProperties.ClientPolicy> map1= policy.getClient();
             Map<String, RateLimiterProperties.ClientPolicy> map1Copy = new HashMap<>();
 
@@ -56,7 +48,7 @@ public class RateLimiterConfiguration {
             mapCopy.put(key,policyCopy);
             rateLimiterProperties.setService(mapCopy);
         }
-
+        System.out.println(rateLimiterProperties);
         return rateLimiterProperties;
     }
 
@@ -73,28 +65,28 @@ public class RateLimiterConfiguration {
     }
 
     @Bean(name = "rateLimiter")
-    @ConditionalOnProperty(value = "algorithm", havingValue = "SLIDING", matchIfMissing = true)
+    @ConditionalOnProperty(value = "intuit.ratelimit.algorithm", havingValue = "SLIDING")
     public RateLimiter slidingWindowRateLimiter(RateLimiterProperties rateLimiterProperties,
-                                                RateLimiterRedisConnection rateLimiterRedisConnection){
+                                                RateLimiterRedisConnection rateLimiterRedisConnection) throws ScriptFoundException {
         return new SlidingWindowRateLimiter(rateLimiterProperties, rateLimiterRedisConnection);
     }
 
     @Bean(name = "rateLimiter")
-    @ConditionalOnProperty(value = "algorithm", havingValue = "FIXED")
+    @ConditionalOnProperty(value = "intuit.ratelimit.algorithm", havingValue = "FIXED")
     public RateLimiter fixedWindowRateLimiter(RateLimiterProperties rateLimiterProperties,
-                                              RateLimiterRedisConnection rateLimiterRedisConnection){
+                                              RateLimiterRedisConnection rateLimiterRedisConnection) throws ScriptFoundException {
         return new FixedWindowRateLimiter(rateLimiterProperties, rateLimiterRedisConnection);
     }
 
     @Bean
-    public FilterRegistrationBean<RateLimitFilter> loggingFilter(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties){
+    public FilterRegistrationBean<RateLimitFilter> rateLimiterFilter(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties){
         FilterRegistrationBean<RateLimitFilter> registrationBean
                 = new FilterRegistrationBean<>();
-
         registrationBean.setFilter(new RateLimitFilter(rateLimiter, rateLimiterProperties));
         registrationBean.addUrlPatterns("*");
         registrationBean.setOrder(1);
 
         return registrationBean;
     }
+
 }

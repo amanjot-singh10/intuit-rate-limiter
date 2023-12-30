@@ -1,12 +1,13 @@
 package com.intuit.ratelimiter.generator;
 
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
-import com.intuit.ratelimiter.configurations.RateLimiterProperties1;
-import org.springframework.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+@Slf4j
 public class DefaultKeyGenerator implements KeyGenerator{
 
     private static final String delimiter = "-";
@@ -22,6 +23,7 @@ public class DefaultKeyGenerator implements KeyGenerator{
         if(rateLimiterProperties.getService().get(service).getClient().containsKey(clientId)){
             joiner.add(clientId);
         }
+        joiner.add(rateLimiterProperties.getAlgorithm().name().toLowerCase(Locale.ROOT));
         return joiner.toString();
     }
 }

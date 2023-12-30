@@ -4,6 +4,7 @@ import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 
+//TODO improve log statements
 public abstract class AbstractRateLimiter implements RateLimiter{
 
         protected RateLimiterProperties rateLimiterProperties;

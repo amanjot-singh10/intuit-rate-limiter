@@ -8,11 +8,15 @@ import com.intuit.ratelimiter.model.Rate;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
 import static com.intuit.ratelimiter.constants.RateLimiterConstants.RESPONSE_CODE_DENY;
 
+
+//TODO clean this class - removed unwanted code
+@Slf4j
 public class RateLimitFilter implements Filter
 {
     RateLimiter rateLimiter;
@@ -35,36 +39,36 @@ public class RateLimitFilter implements Filter
         HttpServletRequest req = (HttpServletRequest) request;
 
         String clientId = ((HttpServletRequest) request).getHeader("clientId");
+        String serviceId = ((HttpServletRequest) request).getHeader("serviceId");
         String uri = ((HttpServletRequest) request).getRequestURI();
 
-        System.out.println("InsideFilter =================== "+clientId + "   "+uri);
-        String key = keyGenerator.key(rateLimiterProperties,"serviceA", clientId);
-
-
-
-        int limit = rateLimiterProperties.getService().get("serviceA").getLimit();
-        int refresh = rateLimiterProperties.getService().get("serviceA").getRefreshInterval();
-        if(rateLimiterProperties.getService().containsKey("serviceA")
-                && rateLimiterProperties.getService().get("serviceA").getClient().containsKey(clientId)){
-            limit= rateLimiterProperties.getService().get("serviceA").getClient().get(clientId).getClientLimit();
-            refresh= rateLimiterProperties.getService().get("serviceA").getClient().get(clientId).getClientRefreshInterval();
-        }
+        System.out.println("InsideFilter =================== "+ serviceId +"  "+clientId + "   "+uri);
+        String key = keyGenerator.key(rateLimiterProperties,serviceId, clientId);
 
         System.out.println(key);
-        Rate valid = rateLimiter.tryConsume(key, limit, refresh);
-        if(valid.getStatus().isPermit() == 1) {
-            generateResponse(response);
-            response.getOutputStream().write("Too Many Requests !!".getBytes());
-            return;
+        if(!key.isEmpty()) {
+            int limit = rateLimiterProperties.getService().get(serviceId).getLimit();
+            int refresh = rateLimiterProperties.getService().get(serviceId).getRefreshInterval();
+            if (rateLimiterProperties.getService().containsKey(serviceId)
+                    && rateLimiterProperties.getService().get(serviceId).getClient().containsKey(clientId)) {
+                limit = rateLimiterProperties.getService().get(serviceId).getClient().get(clientId).getClientLimit();
+                refresh = rateLimiterProperties.getService().get(serviceId).getClient().get(clientId).getClientRefreshInterval();
+            }
+            int a = rateLimiter.getRemainingLimit(key);
+            Rate rate = rateLimiter.tryConsume(key, limit, refresh);
+            generateResponse(response, rate);
+            if (rate.getStatus().isPermit() == 0) {
+                response.getOutputStream().write("Too Many Requests !!".getBytes());
+                return;
+            }
         }
-
         chain.doFilter(request, response);
     }
 
-    public  void generateResponse(ServletResponse response){
+    public  void generateResponse(ServletResponse response, Rate rate){
         ((HttpServletResponse) response).setStatus(RESPONSE_CODE_DENY);
-        ((HttpServletResponse) response).addHeader("X-Ratelimit-Remaining", valid.getRemaining());
-        ((HttpServletResponse) response).addHeader("X-Ratelimit-Limit", valid.getLimit());
+        ((HttpServletResponse) response).addHeader("X-Ratelimit-Remaining", rate.getRemaining());
+        ((HttpServletResponse) response).addHeader("X-Ratelimit-Limit", rate.getLimit());
     }
 
     @Override

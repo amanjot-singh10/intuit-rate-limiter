@@ -1,5 +1,8 @@
-package com.intuit.ratelimiter.redis.exception;
+package com.intuit.ratelimiter.exception;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class RedisClientException extends Exception {
 
     @Override

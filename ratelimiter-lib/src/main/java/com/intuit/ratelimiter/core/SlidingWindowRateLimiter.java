@@ -6,21 +6,21 @@ import com.intuit.ratelimiter.configurations.RateLimiterProperties;
 import com.intuit.ratelimiter.generator.DefaultKeyGenerator;
 import com.intuit.ratelimiter.generator.KeyGenerator;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
+import com.intuit.ratelimiter.exception.ScriptFoundException;
 import com.intuit.ratelimiter.utils.ScriptLoader;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RScript;
 import org.redisson.client.codec.StringCodec;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
+@Slf4j
 public class SlidingWindowRateLimiter extends AbstractRateLimiter{
 
     private ScriptLoader slidingWindowScript ;
     private KeyGenerator keyGenerator;
 
-    public SlidingWindowRateLimiter(RateLimiterProperties rateLimiterProperties, RateLimiterRedisConnection rateLimiterRedisConnection) {
+    public SlidingWindowRateLimiter(RateLimiterProperties rateLimiterProperties, RateLimiterRedisConnection rateLimiterRedisConnection) throws ScriptFoundException {
         super(rateLimiterProperties, rateLimiterRedisConnection);
         keyGenerator = new DefaultKeyGenerator();
         slidingWindowScript = new ScriptLoader("scripts\\sliding-window-ratelimit.lua");
@@ -28,7 +28,6 @@ public class SlidingWindowRateLimiter extends AbstractRateLimiter{
 
     @Override
     public Rate tryConsume(String key, int limit, int refreshInterval)  {
-        System.out.println("SLIDING");
         Object[] keys = new Object[] {key};
         Object[] params = new Object[] {limit, refreshInterval};
         RScript script = rateLimiterRedisConnection.getRedisClient().getScript(StringCodec.INSTANCE);
@@ -42,7 +41,7 @@ public class SlidingWindowRateLimiter extends AbstractRateLimiter{
 
         Rate rate = new Rate();
 
-        rate.setStatus(RateLimitStatus.valueOf((String)resp.get(0)));
+        rate.setStatus(RateLimitStatus.valueOf(((String)resp.get(0)).toUpperCase(Locale.ROOT)));
         List<Object> output = (ArrayList<Object>)resp.get(1);
         rate.setLimit((String)output.get(0));
         rate.setRefreshInterval((String)output.get(1));
@@ -50,6 +49,7 @@ public class SlidingWindowRateLimiter extends AbstractRateLimiter{
         return rate;
     }
 
+    //TODO implement remaining method like Fixed Window
     @Override
     public int getRemainingLimit(String key) {
         return 0;
