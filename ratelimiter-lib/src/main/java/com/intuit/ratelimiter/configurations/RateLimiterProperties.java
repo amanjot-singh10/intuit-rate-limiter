@@ -2,11 +2,14 @@ package com.intuit.ratelimiter.configurations;
 
 import com.intuit.ratelimiter.configurations.validator.Policies;
 import com.intuit.ratelimiter.constants.RateLimitType;
+import com.intuit.ratelimiter.constants.RateLimiterType;
 import com.intuit.ratelimiter.generator.KeyGenerator;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.redisson.api.RRateLimiter;
+import org.redisson.api.RedissonClient;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.convert.DurationUnit;
 import org.springframework.util.StringUtils;
@@ -26,6 +29,7 @@ public class RateLimiterProperties {
     private String name;
     private boolean enabled;
     private String repository;
+    private RateLimiterType algorithm;
     private Map<String, Policy> service = new HashMap<>();
 
     @AllArgsConstructor
@@ -35,10 +39,9 @@ public class RateLimiterProperties {
     public static class Policy{
 
         @NotNull
-        @DurationUnit(ChronoUnit.SECONDS)
-        private Duration refreshInterval;
+        private int refreshInterval;
 
-        private Long limit;
+        private int limit;
 
         @Valid
         @NotNull
@@ -66,10 +69,10 @@ public class RateLimiterProperties {
     public static class ClientPolicy{
 
         @NotNull
-        @DurationUnit(ChronoUnit.SECONDS)
-        private Duration clientRefreshInterval;
+        private int clientRefreshInterval;
 
-        private Long clientLimit;
+        @NotNull
+        private int clientLimit;
 
         @Valid
         @NotNull

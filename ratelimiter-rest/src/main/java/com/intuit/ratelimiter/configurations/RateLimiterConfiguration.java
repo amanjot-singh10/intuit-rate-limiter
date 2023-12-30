@@ -1,22 +1,29 @@
 package com.intuit.ratelimiter.configurations;
 
 import com.intuit.ratelimiter.constants.RateLimitType;
+import com.intuit.ratelimiter.core.FixedWindowRateLimiter;
 import com.intuit.ratelimiter.core.RateLimiter;
 import com.intuit.ratelimiter.core.SlidingWindowRateLimiter;
+import com.intuit.ratelimiter.filters.RateLimitFilter;
+import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
+import jakarta.servlet.Filter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 import java.util.*;
 
 @Configuration
-@EnableConfigurationProperties({RateProperties.class})
+@EnableConfigurationProperties({RateProperties.class, RedisProperties.class})
 public class RateLimiterConfiguration {
 
     @Bean
     public RateLimiterProperties rateLimitProperties(RateProperties rateProperties){
         RateLimiterProperties rateLimiterProperties = new RateLimiterProperties();
-        rateLimiterProperties.setEnabled(rateProperties.getEnabled());
+        rateLimiterProperties.setEnabled(rateProperties.isEnabled());
         rateLimiterProperties.setRepository(rateProperties.getRepository());
 
         Map<String, RateProperties.Policy> map = rateProperties.getService();
@@ -50,12 +57,44 @@ public class RateLimiterConfiguration {
             rateLimiterProperties.setService(mapCopy);
         }
 
-        System.out.println("HIiiiiiiiiiii =======================   "+rateLimiterProperties);
         return rateLimiterProperties;
     }
 
+
     @Bean
-    public RateLimiter slidingWindowRateLimiter(RateLimiterProperties rateLimiterProperties){
-        return new SlidingWindowRateLimiter(rateLimiterProperties);
+    public RateLimiterRedisConnection rateLimiterRedisConnection(RedisProperties redisProperties){
+        RedisPropertiesConfigurations redisPropertiesConfigurations = RedisPropertiesConfigurations.builder().redisHost(redisProperties.getRedisHost()).
+                redisPort(redisProperties.getRedisPort()).redisPassword(redisProperties.getRedisPassword())
+                .redisPoolMaxIdle(redisProperties.getRedisPoolMaxIdle()).redisConnectionTimeout(redisProperties.getRedisConnectionTimeout())
+                .redisPoolMinIdle(redisProperties.getRedisPoolMinIdle()).redisPoolMaxTotal(redisProperties.getRedisPoolMaxTotal())
+                .redisPoolMaxWaitMillis(redisProperties.getRedisPoolMaxWaitMillis()).build();
+
+        return new RateLimiterRedisConnection(redisPropertiesConfigurations);
+    }
+
+    @Bean(name = "rateLimiter")
+    @ConditionalOnProperty(value = "algorithm", havingValue = "SLIDING", matchIfMissing = true)
+    public RateLimiter slidingWindowRateLimiter(RateLimiterProperties rateLimiterProperties,
+                                                RateLimiterRedisConnection rateLimiterRedisConnection){
+        return new SlidingWindowRateLimiter(rateLimiterProperties, rateLimiterRedisConnection);
+    }
+
+    @Bean(name = "rateLimiter")
+    @ConditionalOnProperty(value = "algorithm", havingValue = "FIXED")
+    public RateLimiter fixedWindowRateLimiter(RateLimiterProperties rateLimiterProperties,
+                                              RateLimiterRedisConnection rateLimiterRedisConnection){
+        return new FixedWindowRateLimiter(rateLimiterProperties, rateLimiterRedisConnection);
+    }
+
+    @Bean
+    public FilterRegistrationBean<RateLimitFilter> loggingFilter(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties){
+        FilterRegistrationBean<RateLimitFilter> registrationBean
+                = new FilterRegistrationBean<>();
+
+        registrationBean.setFilter(new RateLimitFilter(rateLimiter, rateLimiterProperties));
+        registrationBean.addUrlPatterns("*");
+        registrationBean.setOrder(1);
+
+        return registrationBean;
     }
 }

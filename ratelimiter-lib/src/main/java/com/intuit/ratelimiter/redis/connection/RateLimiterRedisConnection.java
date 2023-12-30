@@ -16,13 +16,15 @@ public class RateLimiterRedisConnection {
 
     private RedissonClient redisClient = null;
 
+    //TODO Provide more options than just useSingleServer
     public RateLimiterRedisConnection(RedisPropertiesConfigurations redisPropertiesConfigurations){
         Config config = new Config();
         config.useSingleServer().setAddress(redisPropertiesConfigurations.getRedisHost()+":"+redisPropertiesConfigurations.getRedisPort())
                 .setConnectionMinimumIdleSize(redisPropertiesConfigurations.getRedisPoolMinIdle())
                 .setConnectionPoolSize(redisPropertiesConfigurations.getRedisPoolMaxTotal())
                 .setIdleConnectionTimeout(redisPropertiesConfigurations.getRedisConnectionTimeout())
-                .setConnectTimeout(redisPropertiesConfigurations.getRedisConnectionTimeout()).setPassword(redisPropertiesConfigurations.getRedisPassword());
+                .setConnectTimeout(redisPropertiesConfigurations.getRedisConnectionTimeout())
+                .setPassword(redisPropertiesConfigurations.getRedisPassword());
         redisClient = Redisson.create(config);
     }
 

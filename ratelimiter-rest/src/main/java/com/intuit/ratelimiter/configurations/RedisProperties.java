@@ -1,13 +1,17 @@
 package com.intuit.ratelimiter.configurations;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Getter
-@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
-public class RedisPropertiesConfigurations {
+@ConfigurationProperties(value = RedisProperties.PREFIX)
+public class RedisProperties {
+
+    public static final String PREFIX = "redis";
 
     private String redisHost;
     private int redisPort;

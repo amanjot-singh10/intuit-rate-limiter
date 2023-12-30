@@ -2,8 +2,21 @@ spring:
   application:
     name: ratelimit-service
 
+redis:
+  redisHost: redis://127.0.0.1
+  redisPort: 6379
+  redisPassword: password
+  redisConnectionTimeout: 2000
+  redisPoolMaxIdle: 50
+  redisPoolMinIdle: 10
+  redisPoolMaxWaitMillis: -1
+  redisPoolMaxTotal: 200
+  redisKeyPrefix: #RL
+  checkActionTimeout: 100
+
 intuit:
   ratelimit:
+    algorithm: SLIDING
     enabled: true
     repository: REDIS
     service:
@@ -13,9 +26,9 @@ intuit:
           type:
             - origin
           client:
-              ClientA:
+              clientA:
                 clientLimit: 2
                 clientRefreshInterval: 78
-              ClientB:
+              clientB:
                 clientLimit: 21
                 clientRefreshInterval: 45

@@ -41,20 +41,4 @@ public class RateLimiterProperties1 {
 
     }
 
-    public static class DefaultKeyGenerator implements KeyGenerator {
-
-        @Override
-        public String key(String name, RateLimiterProperties1.Policy policy, String clientId) {
-            final StringJoiner joiner = new StringJoiner(":");
-            joiner.add(name);
-            policy.getType().forEach(type -> {
-                String key = type.key(name, policy, clientId);
-                if (StringUtils.hasText(key)) {
-                    joiner.add(key);
-                }
-            });
-            return joiner.toString();
-        }
-
-    }
 }

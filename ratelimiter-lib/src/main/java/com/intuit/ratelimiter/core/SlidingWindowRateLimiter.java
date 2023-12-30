@@ -1,57 +1,58 @@
 package com.intuit.ratelimiter.core;
 
+import com.intuit.ratelimiter.constants.RateLimitStatus;
+import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
-import com.intuit.ratelimiter.configurations.RedisPropertiesConfigurations;
+import com.intuit.ratelimiter.generator.DefaultKeyGenerator;
+import com.intuit.ratelimiter.generator.KeyGenerator;
+import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
+import com.intuit.ratelimiter.utils.ScriptLoader;
 import org.redisson.api.RScript;
 import org.redisson.client.codec.StringCodec;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 public class SlidingWindowRateLimiter extends AbstractRateLimiter{
 
-    public SlidingWindowRateLimiter(RateLimiterProperties rateLimiterProperties) {
-        super(rateLimiterProperties);
-    }
+    private ScriptLoader slidingWindowScript ;
+    private KeyGenerator keyGenerator;
 
-    public SlidingWindowRateLimiter(RateLimiterProperties rateLimiterProperties, RedisPropertiesConfigurations redisPropertiesConfigurations) {
-        super(rateLimiterProperties, redisPropertiesConfigurations);
+    public SlidingWindowRateLimiter(RateLimiterProperties rateLimiterProperties, RateLimiterRedisConnection rateLimiterRedisConnection) {
+        super(rateLimiterProperties, rateLimiterRedisConnection);
+        keyGenerator = new DefaultKeyGenerator();
+        slidingWindowScript = new ScriptLoader("scripts\\sliding-window-ratelimit.lua");
     }
 
     @Override
-    public String tryConsume(String clientId)  {
-        String key="";
-        if(rateLimiterProperties.getService().get("serviceA") != null
-                && rateLimiterProperties.getService().get("serviceA").getClient().containsKey(clientId)){
-            key= clientId+"-"+"serviceA";
-        }
+    public Rate tryConsume(String key, int limit, int refreshInterval)  {
+        System.out.println("SLIDING");
         Object[] keys = new Object[] {key};
-        Object[] params = new Object[] {10,1};
+        Object[] params = new Object[] {limit, refreshInterval};
         RScript script = rateLimiterRedisConnection.getRedisClient().getScript(StringCodec.INSTANCE);
-        for(int i =0; i<200; i++) {
-            try {
-                if(i==100 || i==101)
-                    Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            Long resp = script.eval(key, RScript.Mode.READ_WRITE, slidingWindowScript.getScript().get(), RScript.ReturnType.INTEGER, Arrays.asList(keys), params);
-            ;
-        }
-        return "resp";
+        List<Object> resp = script.eval(key, RScript.Mode.READ_WRITE, slidingWindowScript.getScript().get(), RScript.ReturnType.MULTI, Arrays.asList(keys), params);
+        System.out.println(resp);
+        Rate rate = createRate(resp);
+        return rate;
+    }
+
+    private Rate createRate(List<Object> resp) {
+
+        Rate rate = new Rate();
+
+        rate.setStatus(RateLimitStatus.valueOf((String)resp.get(0)));
+        List<Object> output = (ArrayList<Object>)resp.get(1);
+        rate.setLimit((String)output.get(0));
+        rate.setRefreshInterval((String)output.get(1));
+        rate.setRemaining((String)output.get(2));
+        return rate;
     }
 
     @Override
-    public int getRemainingLimit() {
+    public int getRemainingLimit(String key) {
         return 0;
     }
 
-    public static void main(String[] args) {
-        RateLimiterProperties rateLimiterProperties = new RateLimiterProperties();
-        rateLimiterProperties.setEnabled(true);
-        rateLimiterProperties.setName("1");
-
-        RateLimiter rateLimiter = new SlidingWindowRateLimiter(new RateLimiterProperties());
-        String a = rateLimiter.tryConsume("key");
-        System.out.println(a);
-    }
 }
