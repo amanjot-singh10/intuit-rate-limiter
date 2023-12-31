@@ -3,9 +3,13 @@ package com.intuit.ratelimiter.configurations;
 import com.intuit.ratelimiter.core.FixedWindowRateLimiter;
 import com.intuit.ratelimiter.core.RateLimiter;
 import com.intuit.ratelimiter.core.SlidingWindowRateLimiter;
+import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.filters.RateLimitFilter;
+import com.intuit.ratelimiter.generator.DefaultKeyGenerator;
+import com.intuit.ratelimiter.generator.KeyGenerator;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
-import com.intuit.ratelimiter.exception.ScriptFoundException;
+import com.intuit.ratelimiter.service.RateLimiterRedisService;
+import com.intuit.ratelimiter.service.RateLimiterService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -64,28 +68,40 @@ public class RateLimiterConfiguration {
         return new RateLimiterRedisConnection(redisPropertiesConfigurations);
     }
 
+
+
     @Bean(name = "rateLimiter")
     @ConditionalOnProperty(value = "intuit.ratelimit.algorithm", havingValue = "SLIDING")
     public RateLimiter slidingWindowRateLimiter(RateLimiterProperties rateLimiterProperties,
-                                                RateLimiterRedisConnection rateLimiterRedisConnection) throws ScriptFoundException {
-        return new SlidingWindowRateLimiter(rateLimiterProperties, rateLimiterRedisConnection);
+                                                RateLimiterRedisConnection rateLimiterRedisConnection) throws FileLoadException {
+        return new SlidingWindowRateLimiter(rateLimiterRedisConnection);
     }
 
     @Bean(name = "rateLimiter")
     @ConditionalOnProperty(value = "intuit.ratelimit.algorithm", havingValue = "FIXED")
     public RateLimiter fixedWindowRateLimiter(RateLimiterProperties rateLimiterProperties,
-                                              RateLimiterRedisConnection rateLimiterRedisConnection) throws ScriptFoundException {
-        return new FixedWindowRateLimiter(rateLimiterProperties, rateLimiterRedisConnection);
+                                              RateLimiterRedisConnection rateLimiterRedisConnection) throws FileLoadException {
+        return new FixedWindowRateLimiter(rateLimiterRedisConnection);
     }
 
     @Bean
-    public FilterRegistrationBean<RateLimitFilter> rateLimiterFilter(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties){
+    public KeyGenerator keyGenerator(){
+        return new DefaultKeyGenerator();
+    }
+
+    @Bean
+    public RateLimiterService rateLimiterRedisService(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties,
+                                                    RateLimiterRedisConnection rateLimiterRedisConnection, KeyGenerator keyGenerator) {
+        return new RateLimiterRedisService(rateLimiter, rateLimiterProperties, rateLimiterRedisConnection, keyGenerator);
+    }
+
+    @Bean
+    public FilterRegistrationBean<RateLimitFilter> rateLimiterFilter(RateLimiterService rateLimiterRedisService, RateLimiterProperties rateLimiterProperties){
         FilterRegistrationBean<RateLimitFilter> registrationBean
                 = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new RateLimitFilter(rateLimiter, rateLimiterProperties));
+        registrationBean.setFilter(new RateLimitFilter(rateLimiterRedisService, rateLimiterProperties));
         registrationBean.addUrlPatterns("*");
         registrationBean.setOrder(1);
-
         return registrationBean;
     }
 

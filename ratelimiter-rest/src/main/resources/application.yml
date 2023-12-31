@@ -16,7 +16,7 @@ redis:
 
 intuit:
   ratelimit:
-    algorithm: FIXED
+    algorithm: SLIDING
     enabled: true
     repository: REDIS
     service:

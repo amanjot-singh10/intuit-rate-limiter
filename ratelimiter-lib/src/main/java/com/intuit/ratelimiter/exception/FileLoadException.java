@@ -6,12 +6,8 @@ import java.io.IOException;
 
 @Slf4j
 public class FileLoadException extends Exception{
-    public FileLoadException(String s, IOException e) {
-    }
 
-    @Override
-    public String getMessage() {
-        String msg = "Redis Connection has not been established !!! ";
-        return msg;
+    public FileLoadException(String msg) {
+        super(msg);
     }
 }

@@ -1,7 +1,6 @@
 package com.intuit.ratelimiter.utils;
 
 import com.intuit.ratelimiter.exception.FileLoadException;
-import com.intuit.ratelimiter.exception.ScriptFoundException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -18,21 +17,21 @@ public class ScriptLoader {
 
     private final AtomicReference<String> storedScript;
 
-    public ScriptLoader(String scriptPath) throws ScriptFoundException {
+    public ScriptLoader(String scriptPath) throws FileLoadException {
         this.storedScript = new AtomicReference<>(loadScript(scriptPath));;
     }
 
-    private String loadScript(String scriptPath) throws ScriptFoundException {
+    private String loadScript(String scriptPath) throws FileLoadException {
         URL url = ScriptLoader.class.getClassLoader().getResource(scriptPath);
         String script = "";
         if (url == null) {
-            throw new ScriptFoundException(String.format("Script %s not found", scriptPath));
+            throw new FileLoadException(String.format("Script %s not found", scriptPath));
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
             script = reader.lines().collect(Collectors.joining("\n"));
         } catch (IOException e) {
-            new FileLoadException("Unable to load Redis LUA script file", e);
+            new FileLoadException("Unable to load Redis LUA script file");
         }
         return script;
     }
