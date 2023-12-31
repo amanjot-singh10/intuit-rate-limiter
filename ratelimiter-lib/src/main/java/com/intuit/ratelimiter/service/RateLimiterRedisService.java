@@ -13,14 +13,12 @@ public class RateLimiterRedisService implements RateLimiterService{
 
     protected RateLimiter rateLimiter;
     protected RateLimiterProperties rateLimiterProperties;
-    protected RateLimiterRedisConnection rateLimiterRedisConnection;
     protected KeyGenerator keyGenerator;
 
     public RateLimiterRedisService(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties,
-                                   RateLimiterRedisConnection rateLimiterRedisConnection, KeyGenerator keyGenerator){
+                                   KeyGenerator keyGenerator){
         this.rateLimiter = rateLimiter;
         this.rateLimiterProperties= rateLimiterProperties;
-        this.rateLimiterRedisConnection= rateLimiterRedisConnection;
         this.keyGenerator = keyGenerator;
     }
 

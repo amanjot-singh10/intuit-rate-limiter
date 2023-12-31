@@ -91,8 +91,8 @@ public class RateLimiterConfiguration {
 
     @Bean
     public RateLimiterService rateLimiterRedisService(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties,
-                                                    RateLimiterRedisConnection rateLimiterRedisConnection, KeyGenerator keyGenerator) {
-        return new RateLimiterRedisService(rateLimiter, rateLimiterProperties, rateLimiterRedisConnection, keyGenerator);
+                                                      KeyGenerator keyGenerator) {
+        return new RateLimiterRedisService(rateLimiter, rateLimiterProperties, keyGenerator);
     }
 
     @Bean

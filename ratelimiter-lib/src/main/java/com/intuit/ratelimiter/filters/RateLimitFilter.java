@@ -42,11 +42,6 @@ public class RateLimitFilter implements Filter
         String clientId = ((HttpServletRequest) request).getHeader("clientId");
         String serviceId = ((HttpServletRequest) request).getHeader("serviceId");
         String uri = ((HttpServletRequest) request).getRequestURI();
-
-        System.out.println("InsideFilter =================== "+ serviceId +"  "+clientId + "   "+uri);
-        String key = keyGenerator.key(rateLimiterProperties,serviceId, clientId);
-
-        //int a = rateLimiterService.getRemainingLimit(key);x
         Rate rate = rateLimiterService.consume(clientId, serviceId, rateLimiterProperties);
         generateResponse(response, rate);
         if (rate.getStatus().isPermit() == 0) {
