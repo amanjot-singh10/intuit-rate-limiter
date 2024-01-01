@@ -1,4 +1,4 @@
-package com.intuit.ratelimiter.utils;
+package com.intuit.ratelimiter.helper;
 
 import com.intuit.ratelimiter.exception.FileLoadException;
 import lombok.extern.slf4j.Slf4j;

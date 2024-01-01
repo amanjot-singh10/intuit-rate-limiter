@@ -4,7 +4,6 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.Collection;
 import java.util.Map;
-
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
 
 public class PoliciesValidator implements ConstraintValidator<Policies, Object> {

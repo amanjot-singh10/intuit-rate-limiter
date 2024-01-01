@@ -1,6 +1,5 @@
 package com.intuit.ratelimiter.configurations;
 
-import com.intuit.ratelimiter.constants.RateLimitType;
 import com.intuit.ratelimiter.constants.RateLimiterType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,8 +16,6 @@ import java.util.*;
 @ToString
 public class RateLimiterProperties {
 
-    @Valid
-    private String name;
     @Valid
     private boolean enabled;
     private String repository;
@@ -52,10 +49,6 @@ public class RateLimiterProperties {
 
         @NotNull
         private int clientLimit;
-
-        @Valid
-        @NotNull
-        private List<RateLimitType> type =  new ArrayList<>();
 
     }
 

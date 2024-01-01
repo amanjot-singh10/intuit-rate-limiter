@@ -1,10 +1,14 @@
 package com.intuit.ratelimiter.configurations;
 
+import com.intuit.ratelimiter.configurations.validator.Policies;
 import com.intuit.ratelimiter.constants.RateLimiterType;
 import lombok.Data;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.validation.annotation.Validated;
+
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,13 +20,14 @@ import java.util.Map;
 public class RateProperties {
 
     public static final String PREFIX = "intuit.ratelimit";
-
     private boolean enabled;
 
     private String repository;
 
     private RateLimiterType algorithm;
 
+    @Valid
+    @Policies
     @NestedConfigurationProperty
     private Map<String, Policy> service = new HashMap<>();
 
@@ -30,6 +35,8 @@ public class RateProperties {
     @ToString
     public static class ClientPolicy {
 
+        @Valid
+        @Policies
         private int clientRefreshInterval = 60;
         private int clientLimit;
 
@@ -41,11 +48,9 @@ public class RateProperties {
         private int refreshInterval;
         private int limit;
 
+        @Policies
         @NestedConfigurationProperty
         private Map<String, ClientPolicy> client = new HashMap<>();
-
-        @NestedConfigurationProperty
-        private List<MatchType> type = new ArrayList<>();
 
         @Data
         @ToString

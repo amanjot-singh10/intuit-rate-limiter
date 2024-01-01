@@ -5,8 +5,8 @@ import com.intuit.ratelimiter.core.RateLimiter;
 import com.intuit.ratelimiter.core.SlidingWindowRateLimiter;
 import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.filters.RateLimitFilter;
-import com.intuit.ratelimiter.generator.DefaultKeyGenerator;
-import com.intuit.ratelimiter.generator.KeyGenerator;
+import com.intuit.ratelimiter.helper.DefaultKeyMaker;
+import com.intuit.ratelimiter.helper.KeyMaker;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import com.intuit.ratelimiter.service.RateLimiterRedisService;
 import com.intuit.ratelimiter.service.RateLimiterService;
@@ -36,7 +36,6 @@ public class RateLimiterConfiguration {
             RateLimiterProperties.Policy policyCopy = new RateLimiterProperties.Policy();
             policyCopy.setLimit(policy.getLimit());
             policyCopy.setRefreshInterval(policy.getRefreshInterval());
-            List<RateProperties.Policy.MatchType> matchTypeList = policy.getType();
             Map<String, RateProperties.ClientPolicy> map1= policy.getClient();
             Map<String, RateLimiterProperties.ClientPolicy> map1Copy = new HashMap<>();
 
@@ -85,14 +84,14 @@ public class RateLimiterConfiguration {
     }
 
     @Bean
-    public KeyGenerator keyGenerator(){
-        return new DefaultKeyGenerator();
+    public KeyMaker keyMaker(){
+        return new DefaultKeyMaker();
     }
 
     @Bean
     public RateLimiterService rateLimiterRedisService(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties,
-                                                      KeyGenerator keyGenerator) {
-        return new RateLimiterRedisService(rateLimiter, rateLimiterProperties, keyGenerator);
+                                                      KeyMaker keyMaker) {
+        return new RateLimiterRedisService(rateLimiter, rateLimiterProperties, keyMaker);
     }
 
     @Bean

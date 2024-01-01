@@ -1,9 +1,6 @@
 package com.intuit.ratelimiter.filters;
 
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
-import com.intuit.ratelimiter.core.RateLimiter;
-import com.intuit.ratelimiter.generator.DefaultKeyGenerator;
-import com.intuit.ratelimiter.generator.KeyGenerator;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.service.RateLimiterService;
 import jakarta.servlet.*;
@@ -22,18 +19,14 @@ public class RateLimitFilter implements Filter
 {
     RateLimiterService rateLimiterService;
     RateLimiterProperties rateLimiterProperties;
-    KeyGenerator keyGenerator;
 
     public RateLimitFilter(RateLimiterService rateLimiterService, RateLimiterProperties rateLimiterProperties) {
         this.rateLimiterService = rateLimiterService;
         this.rateLimiterProperties=rateLimiterProperties;
-        keyGenerator = new DefaultKeyGenerator();
     }
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
-    }
+    public void init(FilterConfig filterConfig) throws ServletException {}
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {

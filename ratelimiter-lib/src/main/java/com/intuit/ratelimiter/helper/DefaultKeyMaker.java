@@ -1,4 +1,4 @@
-package com.intuit.ratelimiter.generator;
+package com.intuit.ratelimiter.helper;
 
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 @Slf4j
-public class DefaultKeyGenerator implements KeyGenerator{
+public class DefaultKeyMaker implements KeyMaker{
 
     private static final String delimiter = "-";
 

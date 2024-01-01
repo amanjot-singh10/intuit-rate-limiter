@@ -6,8 +6,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @ConfigurationProperties(value = RedisProperties.PREFIX)
 public class RedisProperties {
 

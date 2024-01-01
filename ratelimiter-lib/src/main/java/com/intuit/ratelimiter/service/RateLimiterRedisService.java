@@ -3,9 +3,8 @@ package com.intuit.ratelimiter.service;
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
 import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.core.RateLimiter;
-import com.intuit.ratelimiter.generator.KeyGenerator;
+import com.intuit.ratelimiter.helper.KeyMaker;
 import com.intuit.ratelimiter.model.Rate;
-import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -13,19 +12,19 @@ public class RateLimiterRedisService implements RateLimiterService{
 
     protected RateLimiter rateLimiter;
     protected RateLimiterProperties rateLimiterProperties;
-    protected KeyGenerator keyGenerator;
+    protected KeyMaker keyMaker;
 
     public RateLimiterRedisService(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties,
-                                   KeyGenerator keyGenerator){
+                                   KeyMaker keyMaker){
         this.rateLimiter = rateLimiter;
         this.rateLimiterProperties= rateLimiterProperties;
-        this.keyGenerator = keyGenerator;
+        this.keyMaker = keyMaker;
     }
 
     @Override
     public Rate consume(String clientId, String serviceId, RateLimiterProperties rateLimiterProperties) {
 
-        String key = keyGenerator.key(rateLimiterProperties,serviceId, clientId);
+        String key = keyMaker.key(rateLimiterProperties,serviceId, clientId);
         Rate rate = new Rate();
         System.out.println(key);
         if(key.isEmpty()) {

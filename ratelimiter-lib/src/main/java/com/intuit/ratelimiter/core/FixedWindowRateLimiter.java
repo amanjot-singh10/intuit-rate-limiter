@@ -3,10 +3,8 @@ package com.intuit.ratelimiter.core;
 import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.model.Rate;
-import com.intuit.ratelimiter.generator.DefaultKeyGenerator;
-import com.intuit.ratelimiter.generator.KeyGenerator;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
-import com.intuit.ratelimiter.utils.ScriptLoader;
+import com.intuit.ratelimiter.helper.ScriptLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RScript;
 import org.redisson.client.codec.StringCodec;
@@ -20,11 +18,9 @@ import java.util.Locale;
 public class FixedWindowRateLimiter extends AbstractRateLimiter{
 
     private ScriptLoader fixedWindowScript ;
-    private KeyGenerator keyGenerator;
 
     public FixedWindowRateLimiter(RateLimiterRedisConnection rateLimiterRedisConnection) throws FileLoadException {
         super(rateLimiterRedisConnection);
-        keyGenerator = new DefaultKeyGenerator();
         fixedWindowScript = new ScriptLoader("scripts\\fixed-window-ratelimit.lua");
     }
 
