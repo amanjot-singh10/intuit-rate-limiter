@@ -11,17 +11,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-//TODO this class doesn't look like util class
 @Slf4j
 public class ScriptLoader {
 
-    private final AtomicReference<String> storedScript;
+    private final String storedScript;
 
     public ScriptLoader(String scriptPath) throws FileLoadException {
-        this.storedScript = new AtomicReference<>(loadScript(scriptPath));;
+        this.storedScript = loadScript(scriptPath);;
     }
 
     private String loadScript(String scriptPath) throws FileLoadException {
+        log.info("Loading {} Lua script for Rate Limiter", scriptPath);
         URL url = ScriptLoader.class.getClassLoader().getResource(scriptPath);
         String script = "";
         if (url == null) {
@@ -31,12 +31,12 @@ public class ScriptLoader {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
             script = reader.lines().collect(Collectors.joining("\n"));
         } catch (IOException e) {
-            new FileLoadException("Unable to load Redis LUA script file");
+            throw new FileLoadException("Unable to load Redis LUA script file !!");
         }
         return script;
     }
 
-    public AtomicReference<String> getScript(){
+    public String getScript(){
         return storedScript;
     }
 }

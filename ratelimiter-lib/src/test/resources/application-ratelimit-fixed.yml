@@ -1,0 +1,30 @@
+algorithm: FIXED
+enabled: true
+repository: REDIS
+service:
+  serviceA:
+    limit: 10
+    refreshInterval: 60
+    client:
+      testA:
+        clientLimit: 2
+        clientRefreshInterval: 78
+      testB:
+        clientLimit: 21
+        clientRefreshInterval: 45
+  serviceB:
+    limit: 1
+    refreshInterval: 10
+    client:
+      testA:
+        clientLimit: 2
+        clientRefreshInterval: 20
+      testB:
+        clientLimit: 10
+        clientRefreshInterval: 45
+  serviceC:
+    limit: 1
+    refreshInterval: 10
+  serviceD:
+    limit: 1
+    refreshInterval: 10

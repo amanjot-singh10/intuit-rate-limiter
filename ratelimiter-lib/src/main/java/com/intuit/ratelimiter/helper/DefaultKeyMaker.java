@@ -14,6 +14,7 @@ public class DefaultKeyMaker implements KeyMaker{
 
     @Override
     public String key(RateLimiterProperties rateLimiterProperties, String service, String clientId) {
+        log.info("Generating key for service - {}, clientId - {} and algorithm", service, clientId, rateLimiterProperties.getAlgorithm());
         boolean clientLimit = false;
         final StringJoiner joiner = new StringJoiner("-");
         if(Objects.isNull(service) || !rateLimiterProperties.getService().containsKey(service)){

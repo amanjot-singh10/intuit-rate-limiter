@@ -1,36 +1,53 @@
 package com.intuit.ratelimiter.helper;
 
 
-import com.intuit.ratelimiter.properties.RateLimiterPropertiesTest;
+import com.intuit.ratelimiter.utils.RateLimiterPropertiesUtil;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.io.IOException;
+import java.util.StringJoiner;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class KeyMakerTest {
 
+    public static final String SCRIPT = "application-ratelimit-SCRIPT.yml";
     private static KeyMaker keyMaker;
 
-    @BeforeAll
-    public static void init(){
+    public KeyMakerTest() {
         keyMaker = new DefaultKeyMaker();
     }
 
-    @Test
-    public void keyOnlyServiceTest(){
-        String keyOnlyService = keyMaker.key(RateLimiterPropertiesTest.getRateLimiterProperty(),"serviceA", "clientNotPresent");
-        assertEquals("serviceA-sliding", keyOnlyService);
+    @ParameterizedTest
+    @ValueSource(strings = {"fixed", "sliding"})
+    public void keyOnlyServiceTest(String algo) throws IOException {
+        String keyOnlyService = keyMaker.key(RateLimiterPropertiesUtil.getRateLimiterProperty(SCRIPT.replace("SCRIPT", algo)),
+                "serviceA", "clientNotPresent");
+        final StringJoiner joiner = new StringJoiner("-");
+        joiner.add("serviceA");
+        joiner.add(algo);
+        assertEquals(joiner.toString(), keyOnlyService);
     }
 
-    @Test
-    public void keyClientAndServiceTest(){
-        String keyBothService = keyMaker.key(RateLimiterPropertiesTest.getRateLimiterProperty(),"serviceA", "clientA");
-        assertEquals("serviceA-clientA-sliding", keyBothService);
+    @ParameterizedTest
+    @ValueSource(strings = {"fixed", "sliding"})
+    public void keyClientAndServiceTest(String algo) throws IOException {
+        String keyBothService = keyMaker.key(RateLimiterPropertiesUtil.getRateLimiterProperty(SCRIPT.replace("SCRIPT", algo)),
+                "serviceA", "testA");
+        final StringJoiner joiner = new StringJoiner("-");
+        joiner.add("serviceA");
+        joiner.add("testA");
+        joiner.add(algo);
+        assertEquals(joiner.toString(), keyBothService);
     }
 
-    @Test
-    public void keyInvalidTest(){
-        String keyInvalid = keyMaker.key(RateLimiterPropertiesTest.getRateLimiterProperty(),"serviceNotPresent", "clientNotPresent");
+    @ParameterizedTest
+    @ValueSource(strings = {"fixed", "sliding"})
+    public void keyInvalidTest(String algo) throws IOException {
+        String keyInvalid = keyMaker.key(RateLimiterPropertiesUtil.getRateLimiterProperty(SCRIPT.replace("SCRIPT", algo)),
+                "serviceNotPresent", "clientNotPresent");
         assertEquals("", keyInvalid);
     }
-
 }

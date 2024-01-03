@@ -1,22 +1,24 @@
 package com.intuit.ratelimiter.properties;
 
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
-import org.yaml.snakeyaml.LoaderOptions;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
+import com.intuit.ratelimiter.constants.RateLimiterType;
+import com.intuit.ratelimiter.utils.RateLimiterPropertiesUtil;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-import java.io.InputStream;
+import java.io.IOException;
 
 public class RateLimiterPropertiesTest {
 
-        public static RateLimiterProperties getRateLimiterProperty(){
-            RateLimiterPropertiesTest rateLimiterPropertiesTest = new RateLimiterPropertiesTest();
-            InputStream inputStream = rateLimiterPropertiesTest.getClass()
-                    .getClassLoader()
-                    .getResourceAsStream("application-test.yml");
-            Yaml yaml = new Yaml(new Constructor(RateLimiterProperties.class, new LoaderOptions()));
-            RateLimiterProperties rateLimiterProperties = yaml.load(inputStream);
-            return rateLimiterProperties;
+        public static final String script = "application-ratelimit-fixed.yml";
+
+        @Test
+        public void testRateLimiterProperties() throws IOException {
+            RateLimiterProperties rateLimiterProperties = RateLimiterPropertiesUtil.getRateLimiterProperty(script);
+
+            Assertions.assertEquals(RateLimiterType.FIXED, rateLimiterProperties.getAlgorithm());
+            Assertions.assertEquals("REDIS", rateLimiterProperties.getRepository());
+            Assertions.assertEquals(4, rateLimiterProperties.getService().size());
         }
 
 }

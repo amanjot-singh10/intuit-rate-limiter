@@ -6,31 +6,36 @@ import com.intuit.ratelimiter.core.RateLimiter;
 import com.intuit.ratelimiter.helper.KeyMaker;
 import com.intuit.ratelimiter.model.Rate;
 import lombok.extern.slf4j.Slf4j;
+import org.jboss.marshalling.Pair;
 
 @Slf4j
-public class RateLimiterRedisService implements RateLimiterService{
+public class RateLimiterRedisService implements RateLimiterService {
 
     protected RateLimiter rateLimiter;
     protected RateLimiterProperties rateLimiterProperties;
     protected KeyMaker keyMaker;
 
     public RateLimiterRedisService(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties,
-                                   KeyMaker keyMaker){
+                                   KeyMaker keyMaker) {
         this.rateLimiter = rateLimiter;
-        this.rateLimiterProperties= rateLimiterProperties;
+        this.rateLimiterProperties = rateLimiterProperties;
         this.keyMaker = keyMaker;
     }
 
     @Override
-    public Rate consume(String clientId, String serviceId, RateLimiterProperties rateLimiterProperties) {
-
-        String key = keyMaker.key(rateLimiterProperties,serviceId, clientId);
-        Rate rate = new Rate();
-        System.out.println(key);
-        if(key.isEmpty()) {
-            return rate;
+    public Rate consume(String clientId, String serviceId) {
+        String key = keyMaker.key(rateLimiterProperties, serviceId, clientId);
+        if (key.isEmpty()) {
+            log.info("Key generated is Blank, request rejected !!");
         }
-        rate = rateLimiter.tryConsume(key);
+        log.info("Generated Key - {}", key);
+        Pair<Integer, Integer> limitPair = getPolicyLimit(rateLimiterProperties, serviceId, clientId);
+        Rate rate = rateLimiter.checkLimit(key, limitPair.getA(), limitPair.getB());
+        return rate;
+    }
+
+    private Pair<Integer, Integer> getPolicyLimit(RateLimiterProperties rateLimiterProperties, String serviceId, String clientId) {
+
         int limit = rateLimiterProperties.getService().get(serviceId).getLimit();
         int refresh = rateLimiterProperties.getService().get(serviceId).getRefreshInterval();
         if (rateLimiterProperties.getService().containsKey(serviceId)
@@ -38,17 +43,7 @@ public class RateLimiterRedisService implements RateLimiterService{
             limit = rateLimiterProperties.getService().get(serviceId).getClient().get(clientId).getClientLimit();
             refresh = rateLimiterProperties.getService().get(serviceId).getClient().get(clientId).getClientRefreshInterval();
         }
-        if(rate.getStatus().equals(RateLimitStatus.KEY_MISS)) {
-            rate = setRateAndConsume(key, limit, refresh);
-        }
-        rate.setLimit(String.valueOf(limit));
-        System.out.println(rate);
-        return rate;
-    }
-
-    @Override
-    public Rate setRateAndConsume(String key, int limit, int refreshInterval) {
-        return rateLimiter.setRate(key, limit, refreshInterval);
+        return new Pair<>(limit, refresh);
     }
 
 }

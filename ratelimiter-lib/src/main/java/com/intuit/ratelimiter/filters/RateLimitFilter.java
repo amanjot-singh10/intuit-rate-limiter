@@ -13,38 +13,41 @@ import java.io.IOException;
 import static com.intuit.ratelimiter.constants.RateLimiterConstants.RESPONSE_CODE_DENY;
 
 
-//TODO clean this class - removed unwanted code
 @Slf4j
-public class RateLimitFilter implements Filter
-{
+public class RateLimitFilter implements Filter {
+
+    private static final String CLIENT_HEADER = "clientId";
+    private static final String SERVICE_HEADER = "serviceId";
     RateLimiterService rateLimiterService;
     RateLimiterProperties rateLimiterProperties;
 
     public RateLimitFilter(RateLimiterService rateLimiterService, RateLimiterProperties rateLimiterProperties) {
         this.rateLimiterService = rateLimiterService;
-        this.rateLimiterProperties=rateLimiterProperties;
+        this.rateLimiterProperties = rateLimiterProperties;
     }
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {}
+    public void init(FilterConfig filterConfig) throws ServletException {
+    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
-
-        String clientId = ((HttpServletRequest) request).getHeader("clientId");
-        String serviceId = ((HttpServletRequest) request).getHeader("serviceId");
+        String clientId = ((HttpServletRequest) request).getHeader(CLIENT_HEADER);
+        String serviceId = ((HttpServletRequest) request).getHeader(SERVICE_HEADER);
+        log.info("Rate Limit filter:  Request for serviceId - {}, clientId - {} ", serviceId, clientId);
         String uri = ((HttpServletRequest) request).getRequestURI();
-        Rate rate = rateLimiterService.consume(clientId, serviceId, rateLimiterProperties);
+        Rate rate = rateLimiterService.consume(clientId, serviceId);
         generateResponse(response, rate);
         if (rate.getStatus().isPermit() == 0) {
+            log.warn("Request rejected for serviceId - {}, clientId - {} as limit exceeded !!", serviceId,clientId);
             response.getOutputStream().write("Too Many Requests !!".getBytes());
             return;
         }
         chain.doFilter(request, response);
     }
 
-    public  void generateResponse(ServletResponse response, Rate rate){
+    public void generateResponse(ServletResponse response, Rate rate) {
         ((HttpServletResponse) response).setStatus(RESPONSE_CODE_DENY);
         ((HttpServletResponse) response).addHeader("X-Ratelimit-Remaining", rate.getRemaining());
         ((HttpServletResponse) response).addHeader("X-Ratelimit-Limit", rate.getLimit());

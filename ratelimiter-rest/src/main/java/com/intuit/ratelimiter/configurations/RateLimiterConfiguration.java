@@ -51,7 +51,6 @@ public class RateLimiterConfiguration {
             mapCopy.put(key,policyCopy);
             rateLimiterProperties.setService(mapCopy);
         }
-        System.out.println(rateLimiterProperties);
         return rateLimiterProperties;
     }
 

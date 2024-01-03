@@ -6,20 +6,20 @@ service:
     limit: 10
     refreshInterval: 60
     client:
-      clientA:
+      testA:
         clientLimit: 2
         clientRefreshInterval: 78
-      clientB:
+      testB:
         clientLimit: 21
         clientRefreshInterval: 45
   serviceB:
     limit: 1
     refreshInterval: 10
     client:
-      clientA:
+      testA:
         clientLimit: 2
         clientRefreshInterval: 20
-      clientB:
+      testB:
         clientLimit: 10
         clientRefreshInterval: 45
   serviceC:

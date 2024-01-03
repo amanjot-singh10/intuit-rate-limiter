@@ -14,6 +14,7 @@ public class RateLimiterRedisConnection {
 
     //TODO Provide more options than just useSingleServer
     public RateLimiterRedisConnection(RedisPropertiesConfigurations redisPropertiesConfigurations){
+        log.info("Creating Redis connection with config {}",redisPropertiesConfigurations);
         Config config = new Config();
         config.useSingleServer().setAddress(redisPropertiesConfigurations.getRedisHost()+":"+redisPropertiesConfigurations.getRedisPort())
                 .setConnectionMinimumIdleSize(redisPropertiesConfigurations.getRedisPoolMinIdle())

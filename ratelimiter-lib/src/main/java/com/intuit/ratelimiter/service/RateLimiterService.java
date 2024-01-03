@@ -5,7 +5,6 @@ import com.intuit.ratelimiter.model.Rate;
 
 public interface RateLimiterService {
 
-    public Rate consume(String clientId, String service, RateLimiterProperties rateLimiterProperties);
-    public Rate setRateAndConsume(String key, int limit, int refreshInterval);
+    public Rate consume(String clientId, String service);
 
 }

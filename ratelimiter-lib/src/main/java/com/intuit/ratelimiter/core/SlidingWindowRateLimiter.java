@@ -14,43 +14,32 @@ import java.util.*;
 @Slf4j
 public class SlidingWindowRateLimiter extends AbstractRateLimiter{
 
-    private ScriptLoader slidingWindowScript ;
-
+    private static final String scriptPathSliding = "scripts\\sliding-window-ratelimit.lua";
+    private ScriptLoader scriptLoaderSliding;
     public SlidingWindowRateLimiter(RateLimiterRedisConnection rateLimiterRedisConnection) throws FileLoadException {
         super(rateLimiterRedisConnection);
-        slidingWindowScript = new ScriptLoader("scripts\\sliding-window-ratelimit.lua");
+        scriptLoaderSliding = new ScriptLoader(scriptPathSliding);
     }
 
     @Override
-    public Rate tryConsume(String key)  {
-        System.out.println("==================Sliding consume=================");
+    public Rate checkLimit(String key, int limit, int refreshInterval)  {
+        log.info("Checking Rate Limit for key - {}, limit - {} and refreshInterval - {}", key, limit, refreshInterval);
         Object[] keys = new Object[] {key};
-        Object[] params = new Object[] {10, 45, "consume"};
+        Object[] params = new Object[] {limit, refreshInterval};
         RScript script = rateLimiterRedisConnection.getRedisClient().getScript(StringCodec.INSTANCE);
-        List<Object> resp = script.eval(key, RScript.Mode.READ_WRITE, slidingWindowScript.getScript().get(), RScript.ReturnType.MULTI, Arrays.asList(keys), params);
+        List<Object> resp = script.eval(key, RScript.Mode.READ_WRITE, scriptLoaderSliding.getScript(), RScript.ReturnType.MULTI, Arrays.asList(keys), params);
         Rate rate = createRate(resp);
+        log.info("Rate Status for key - {} is {}", key, rate);
         return rate;
     }
 
     private Rate createRate(List<Object> resp) {
-
         Rate rate = new Rate();
-
         rate.setStatus(RateLimitStatus.valueOf(((String)resp.get(0)).toUpperCase(Locale.ROOT)));
         List<Object> output = (ArrayList<Object>)resp.get(1);
-        rate.setRefreshInterval((String)output.get(0));
-        rate.setRemaining((String)output.get(1));
-        return rate;
-    }
-
-    @Override
-    public Rate setRate(String key, int limit, int refreshInterval) {
-        System.out.println("==================Sliding setRate=================");
-        Object[] keys = new Object[] {key};
-        Object[] params = new Object[] {limit, refreshInterval, "setrate"};
-        RScript script = rateLimiterRedisConnection.getRedisClient().getScript(StringCodec.INSTANCE);
-        List<Object> resp = script.eval(key, RScript.Mode.READ_WRITE, slidingWindowScript.getScript().get(), RScript.ReturnType.MULTI, Arrays.asList(keys), params);
-        Rate rate = createRate(resp);
+        rate.setLimit((String)output.get(0));
+        rate.setRefreshInterval((String)output.get(1));
+        rate.setRemaining((String)output.get(2));
         return rate;
     }
 

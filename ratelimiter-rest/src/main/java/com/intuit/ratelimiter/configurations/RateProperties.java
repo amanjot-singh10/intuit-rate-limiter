@@ -26,8 +26,6 @@ public class RateProperties {
 
     private RateLimiterType algorithm;
 
-    @Valid
-    @Policies
     @NestedConfigurationProperty
     private Map<String, Policy> service = new HashMap<>();
 
@@ -48,7 +46,6 @@ public class RateProperties {
         private int refreshInterval;
         private int limit;
 
-        @Policies
         @NestedConfigurationProperty
         private Map<String, ClientPolicy> client = new HashMap<>();
 
