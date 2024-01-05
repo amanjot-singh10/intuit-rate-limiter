@@ -2,6 +2,7 @@ package com.intuit.ratelimiter.core;
 
 import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.exception.FileLoadException;
+import com.intuit.ratelimiter.exception.RateNotFound;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import com.intuit.ratelimiter.helper.ScriptLoader;
@@ -22,12 +23,16 @@ public class SlidingWindowRateLimiter extends AbstractRateLimiter{
     }
 
     @Override
-    public Rate checkLimit(String key, int limit, int refreshInterval)  {
+    public Rate checkLimit(String key, int limit, int refreshInterval) throws RateNotFound {
         log.info("Checking Rate Limit for key - {}, limit - {} and refreshInterval - {}", key, limit, refreshInterval);
         Object[] keys = new Object[] {key};
         Object[] params = new Object[] {limit, refreshInterval};
         RScript script = rateLimiterRedisConnection.getRedisClient().getScript(StringCodec.INSTANCE);
         List<Object> resp = script.eval(key, RScript.Mode.READ_WRITE, scriptLoaderSliding.getScript(), RScript.ReturnType.MULTI, Arrays.asList(keys), params);
+        if (Objects.isNull(resp)){
+            log.error("Couldn't find the Rate in Redis for {} {} {} ",key, limit, refreshInterval);
+            throw new RateNotFound(String.format("Couldn't find the Rate in Redis for %s %s %s ",key, limit, refreshInterval));
+        }
         Rate rate = createRate(resp);
         log.info("Rate Status for key - {} is {}", key, rate);
         return rate;

@@ -1,7 +1,5 @@
 version: "3.9"
 
-# For dev, loads redis_functions.lua from scripts dir as a bind mount
-
 services:
   redis-container:
     image: redis:7

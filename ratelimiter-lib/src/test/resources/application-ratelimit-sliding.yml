@@ -1,6 +1,5 @@
 algorithm: SLIDING
 enabled: true
-repository: REDIS
 service:
   serviceA:
     limit: 10

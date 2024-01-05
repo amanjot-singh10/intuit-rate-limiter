@@ -3,6 +3,7 @@ package com.intuit.ratelimiter.service;
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
 import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.core.RateLimiter;
+import com.intuit.ratelimiter.exception.RateNotFound;
 import com.intuit.ratelimiter.helper.KeyMaker;
 import com.intuit.ratelimiter.model.Rate;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +24,11 @@ public class RateLimiterRedisService implements RateLimiterService {
     }
 
     @Override
-    public Rate consume(String clientId, String serviceId) {
+    public Rate consume(String clientId, String serviceId) throws RateNotFound {
         String key = keyMaker.key(rateLimiterProperties, serviceId, clientId);
         if (key.isEmpty()) {
             log.info("Key generated is Blank, request rejected !!");
+            return new Rate(RateLimitStatus.DENY, "0", "0", "0");
         }
         log.info("Generated Key - {}", key);
         Pair<Integer, Integer> limitPair = getPolicyLimit(rateLimiterProperties, serviceId, clientId);

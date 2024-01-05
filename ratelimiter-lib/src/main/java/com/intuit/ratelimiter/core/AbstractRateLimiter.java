@@ -1,6 +1,7 @@
 package com.intuit.ratelimiter.core;
 
 import com.intuit.ratelimiter.exception.FileLoadException;
+import com.intuit.ratelimiter.exception.RateNotFound;
 import com.intuit.ratelimiter.helper.ScriptLoader;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
@@ -14,5 +15,5 @@ public abstract class AbstractRateLimiter implements RateLimiter{
 //                this.scriptLoader = new ScriptLoader(scriptPath);
         }
 
-        public abstract Rate checkLimit(String key, int limit, int refreshInterval);
+        public abstract Rate checkLimit(String key, int limit, int refreshInterval) throws RateNotFound;
 }

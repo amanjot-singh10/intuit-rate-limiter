@@ -26,7 +26,6 @@ public class RateLimiterConfiguration {
     public RateLimiterProperties rateLimitProperties(RateProperties rateProperties){
         RateLimiterProperties rateLimiterProperties = new RateLimiterProperties();
         rateLimiterProperties.setEnabled(rateProperties.isEnabled());
-        rateLimiterProperties.setRepository(rateProperties.getRepository());
         rateLimiterProperties.setAlgorithm(rateProperties.getAlgorithm());
 
         Map<String, RateProperties.Policy> map = rateProperties.getService();
@@ -57,11 +56,15 @@ public class RateLimiterConfiguration {
 
     @Bean
     public RateLimiterRedisConnection rateLimiterRedisConnection(RedisProperties redisProperties){
-        RedisPropertiesConfigurations redisPropertiesConfigurations = RedisPropertiesConfigurations.builder().redisHost(redisProperties.getRedisHost()).
-                redisPort(redisProperties.getRedisPort()).redisPassword(redisProperties.getRedisPassword())
-                .redisPoolMaxIdle(redisProperties.getRedisPoolMaxIdle()).redisConnectionTimeout(redisProperties.getRedisConnectionTimeout())
-                .redisPoolMinIdle(redisProperties.getRedisPoolMinIdle()).redisPoolMaxTotal(redisProperties.getRedisPoolMaxTotal())
-                .redisPoolMaxWaitMillis(redisProperties.getRedisPoolMaxWaitMillis()).build();
+        RedisPropertiesConfigurations redisPropertiesConfigurations = new RedisPropertiesConfigurations();
+                redisPropertiesConfigurations.setRedisHost(redisProperties.getRedisHost());
+        redisPropertiesConfigurations.setRedisPort(redisProperties.getRedisPort());
+        redisPropertiesConfigurations.setRedisPassword(redisProperties.getRedisPassword());
+        redisPropertiesConfigurations.setRedisPoolMaxIdle(redisProperties.getRedisPoolMaxIdle());
+        redisPropertiesConfigurations.setRedisConnectionTimeout(redisProperties.getRedisConnectionTimeout());
+        redisPropertiesConfigurations.setRedisPoolMinIdle(redisProperties.getRedisPoolMinIdle());
+        redisPropertiesConfigurations.setRedisPoolMaxTotal(redisProperties.getRedisPoolMaxTotal());
+        redisPropertiesConfigurations.setRedisPoolMaxWaitMillis(redisProperties.getRedisPoolMaxWaitMillis());
 
         return new RateLimiterRedisConnection(redisPropertiesConfigurations);
     }

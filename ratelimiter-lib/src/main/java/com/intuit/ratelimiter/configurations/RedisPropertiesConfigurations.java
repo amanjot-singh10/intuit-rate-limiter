@@ -3,7 +3,6 @@ package com.intuit.ratelimiter.configurations;
 import lombok.*;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString

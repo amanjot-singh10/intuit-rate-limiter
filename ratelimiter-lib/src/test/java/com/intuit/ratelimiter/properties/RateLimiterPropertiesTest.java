@@ -17,7 +17,6 @@ public class RateLimiterPropertiesTest {
             RateLimiterProperties rateLimiterProperties = RateLimiterPropertiesUtil.getRateLimiterProperty(script);
 
             Assertions.assertEquals(RateLimiterType.FIXED, rateLimiterProperties.getAlgorithm());
-            Assertions.assertEquals("REDIS", rateLimiterProperties.getRepository());
             Assertions.assertEquals(4, rateLimiterProperties.getService().size());
         }
 

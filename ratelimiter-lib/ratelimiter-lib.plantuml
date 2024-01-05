@@ -1,0 +1,175 @@
+@startuml
+
+title __RATELIMITER-LIB's Class Diagram__\n
+
+  namespace com.intuit.ratelimiter.configurations {
+    class com.intuit.ratelimiter.configurations.RateLimiterProperties {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.configurations {
+    class com.intuit.ratelimiter.configurations.RedisPropertiesConfigurations {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.configurations {
+    namespace validator {
+      interface com.intuit.ratelimiter.configurations.validator.Policies {
+      }
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.configurations {
+    namespace validator {
+      class com.intuit.ratelimiter.configurations.validator.PoliciesValidator {
+      }
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.constants {
+    enum RateLimitStatus {
+    ALLOW
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.constants {
+    class com.intuit.ratelimiter.constants.RateLimiterConstants {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.constants {
+    enum RateLimiterType {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.core {
+    abstract class com.intuit.ratelimiter.core.AbstractRateLimiter {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.core {
+    class com.intuit.ratelimiter.core.FixedWindowRateLimiter {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.core {
+    interface com.intuit.ratelimiter.core.RateLimiter {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.core {
+    class com.intuit.ratelimiter.core.SlidingWindowRateLimiter {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.exception {
+    class com.intuit.ratelimiter.exception.FileLoadException {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.exception {
+    class com.intuit.ratelimiter.exception.RedisClientException {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.filters {
+    class com.intuit.ratelimiter.filters.RateLimitFilter {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.helper {
+    class com.intuit.ratelimiter.helper.DefaultKeyMaker {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.helper {
+    interface com.intuit.ratelimiter.helper.KeyMaker {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.helper {
+    class com.intuit.ratelimiter.helper.ScriptLoader {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.model {
+    class com.intuit.ratelimiter.model.Rate {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.redis.connection {
+    class com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.repository {
+    interface com.intuit.ratelimiter.repository.RateLimiterRepository {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.repository {
+    class com.intuit.ratelimiter.repository.RedisRateLimiterRepository {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.service {
+    class com.intuit.ratelimiter.service.RateLimiterRedisService {
+    }
+  }
+  
+
+  namespace com.intuit.ratelimiter.service {
+    interface com.intuit.ratelimiter.service.RateLimiterService {
+    }
+  }
+  
+
+  com.intuit.ratelimiter.configurations.RateLimiterProperties o-- com.intuit.ratelimiter.constants.RateLimiterType : algorithm
+  com.intuit.ratelimiter.configurations.validator.PoliciesValidator .up.|> javax.validation.ConstraintValidator
+  com.intuit.ratelimiter.core.AbstractRateLimiter .up.|> com.intuit.ratelimiter.core.RateLimiter
+  com.intuit.ratelimiter.core.AbstractRateLimiter o-- com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection : rateLimiterRedisConnection
+  com.intuit.ratelimiter.core.FixedWindowRateLimiter -up-|> com.intuit.ratelimiter.core.AbstractRateLimiter
+  com.intuit.ratelimiter.core.FixedWindowRateLimiter o-- com.intuit.ratelimiter.helper.ScriptLoader : scriptLoaderFixed
+  com.intuit.ratelimiter.core.SlidingWindowRateLimiter -up-|> com.intuit.ratelimiter.core.AbstractRateLimiter
+  com.intuit.ratelimiter.core.SlidingWindowRateLimiter o-- com.intuit.ratelimiter.helper.ScriptLoader : scriptLoaderSliding
+  com.intuit.ratelimiter.filters.RateLimitFilter .up.|> jakarta.servlet.Filter
+  com.intuit.ratelimiter.filters.RateLimitFilter o-- com.intuit.ratelimiter.configurations.RateLimiterProperties : rateLimiterProperties
+  com.intuit.ratelimiter.filters.RateLimitFilter o-- com.intuit.ratelimiter.service.RateLimiterService : rateLimiterService
+  com.intuit.ratelimiter.helper.DefaultKeyMaker .up.|> com.intuit.ratelimiter.helper.KeyMaker
+  com.intuit.ratelimiter.model.Rate o-- com.intuit.ratelimiter.constants.RateLimitStatus : status
+  com.intuit.ratelimiter.repository.RedisRateLimiterRepository .up.|> com.intuit.ratelimiter.repository.RateLimiterRepository
+  com.intuit.ratelimiter.service.RateLimiterRedisService .up.|> com.intuit.ratelimiter.service.RateLimiterService
+  com.intuit.ratelimiter.service.RateLimiterRedisService o-- com.intuit.ratelimiter.helper.KeyMaker : keyMaker
+  com.intuit.ratelimiter.service.RateLimiterRedisService o-- com.intuit.ratelimiter.core.RateLimiter : rateLimiter
+  com.intuit.ratelimiter.service.RateLimiterRedisService o-- com.intuit.ratelimiter.configurations.RateLimiterProperties : rateLimiterProperties
+
+
+right footer
+
+
+PlantUML diagram generated by SketchIt! (https://bitbucket.org/pmesmeur/sketch.it)
+For more information about this tool, please contact philippe.mesmeur@gmail.com
+endfooter
+
+@enduml

@@ -3,6 +3,7 @@ package com.intuit.ratelimiter.core;
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
 import com.intuit.ratelimiter.configurations.RedisPropertiesConfigurations;
 import com.intuit.ratelimiter.exception.FileLoadException;
+import com.intuit.ratelimiter.exception.RateNotFound;
 import com.intuit.ratelimiter.helper.DefaultKeyMaker;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
@@ -43,7 +44,7 @@ public class SlidingWindowRateLimiterIT {
 
     @ParameterizedTest
     @CsvSource({"testA, serviceA", "testA, serviceB", "testB, serviceB"})
-    public void testSlidingTryConsume(String clientId, String service){
+    public void testSlidingTryConsume(String clientId, String service) throws RateNotFound {
         int limit = rateLimiterProperties.getService().get(service)
                 .getClient().get(clientId).getClientLimit();
         Rate rate1 = rateLimiterService.consume(clientId, service);

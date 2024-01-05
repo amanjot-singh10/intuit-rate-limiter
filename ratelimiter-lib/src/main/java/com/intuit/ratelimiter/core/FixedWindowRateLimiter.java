@@ -2,6 +2,7 @@ package com.intuit.ratelimiter.core;
 
 import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.exception.FileLoadException;
+import com.intuit.ratelimiter.exception.RateNotFound;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import com.intuit.ratelimiter.helper.ScriptLoader;
@@ -9,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RScript;
 import org.redisson.client.codec.StringCodec;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 @Slf4j
 public class FixedWindowRateLimiter extends AbstractRateLimiter{
@@ -25,12 +23,16 @@ public class FixedWindowRateLimiter extends AbstractRateLimiter{
     }
 
     @Override
-    public Rate checkLimit(String key, int limit, int refreshInterval) {
+    public Rate checkLimit(String key, int limit, int refreshInterval) throws RateNotFound {
         log.info("Checking Rate Limit for key - {}, limit - {} and refreshInterval - {}", key, limit, refreshInterval);
         List<Object> keys = Arrays.asList(key);
-        Object[] params = new Object[] {limit, refreshInterval};
+        Object[] params = new Object[]{limit, refreshInterval};
         RScript script = rateLimiterRedisConnection.getRedisClient().getScript(StringCodec.INSTANCE);
         List<Object> resp = script.eval(key, RScript.Mode.READ_WRITE, scriptLoaderFixed.getScript(), RScript.ReturnType.MULTI, keys, params);
+        if (Objects.isNull(resp)){
+            log.error("Couldn't find the Rate in Redis for {} {} {} ",key, limit, refreshInterval);
+            throw new RateNotFound(String.format("Couldn't find the Rate in Redis for %s %s %s ",key, limit, refreshInterval));
+        }
         Rate rate = createRate(resp);
         log.info("Rate Status for key - {} is {}", key, rate);
         return rate;

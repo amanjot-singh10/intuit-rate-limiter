@@ -2,6 +2,7 @@ package com.intuit.ratelimiter.core;
 
 import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.exception.FileLoadException;
+import com.intuit.ratelimiter.exception.RateNotFound;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +34,7 @@ public class SlidingWindowRateLimiterTest {
     }
 
     @Test
-    public void testTryConsume() {
+    public void testTryConsume() throws RateNotFound {
         String key = "testKey";
         SlidingWindowRateLimiter rateLimiterSpy = spy(rateLimiterTest);
         List<Object> mock1 = new ArrayList<>();

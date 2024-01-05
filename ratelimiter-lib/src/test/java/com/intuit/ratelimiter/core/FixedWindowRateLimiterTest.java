@@ -2,6 +2,7 @@ package com.intuit.ratelimiter.core;
 
 import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.exception.FileLoadException;
+import com.intuit.ratelimiter.exception.RateNotFound;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,19 +33,19 @@ public class FixedWindowRateLimiterTest {
     }
 
     @Test
-    public void testTryConsume() {
+    public void testTryConsume() throws RateNotFound {
         // Arrange
         String key = "testKey";
         FixedWindowRateLimiter rateLimiterSpy = spy(rateLimiterTest);
         List<Object> mock1 = new ArrayList<>();
         mock1.add("10");mock1.add("60"); mock1.add("9");
-        List<Object> mock = new ArrayList<>();
+        List<Object> mock = null;
         mock.add("ALLOW"); mock.add(mock1);
 
         RScript scriptMock = mock(RScript.class);
         when(redissonClientMock.getScript(StringCodec.INSTANCE)).thenReturn(scriptMock);
         Object[] params = new Object[] {10, 60};
-        when(scriptMock.eval(anyString(), eq(RScript.Mode.READ_WRITE), anyString() , eq(RScript.ReturnType.MULTI), anyList(), eq(params)))
+        when(scriptMock.eval(anyString(), eq(RScript.Mode.READ_WRITE), any() , eq(RScript.ReturnType.MULTI), anyList(), eq(params)))
                 .thenReturn(mock); // Adjust the values as needed
 
         Rate result = rateLimiterSpy.checkLimit(key, 10, 60);

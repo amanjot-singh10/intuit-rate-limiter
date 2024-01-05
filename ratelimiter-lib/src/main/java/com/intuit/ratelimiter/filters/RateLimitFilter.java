@@ -1,13 +1,13 @@
 package com.intuit.ratelimiter.filters;
 
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
+import com.intuit.ratelimiter.exception.RateNotFound;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.service.RateLimiterService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 
 import static com.intuit.ratelimiter.constants.RateLimiterConstants.RESPONSE_CODE_DENY;
@@ -37,13 +37,19 @@ public class RateLimitFilter implements Filter {
         String serviceId = ((HttpServletRequest) request).getHeader(SERVICE_HEADER);
         log.info("Rate Limit filter:  Request for serviceId - {}, clientId - {} ", serviceId, clientId);
         String uri = ((HttpServletRequest) request).getRequestURI();
-        Rate rate = rateLimiterService.consume(clientId, serviceId);
-        generateResponse(response, rate);
+        Rate rate = null;
+        try {
+            rate = rateLimiterService.consume(clientId, serviceId);
+        } catch (RateNotFound e) {
+            response.getOutputStream().write("Couldn't find the rate".getBytes());
+            return;
+        }
         if (rate.getStatus().isPermit() == 0) {
             log.warn("Request rejected for serviceId - {}, clientId - {} as limit exceeded !!", serviceId,clientId);
             response.getOutputStream().write("Too Many Requests !!".getBytes());
             return;
         }
+        generateResponse(response, rate);
         chain.doFilter(request, response);
     }
 
@@ -51,6 +57,7 @@ public class RateLimitFilter implements Filter {
         ((HttpServletResponse) response).setStatus(RESPONSE_CODE_DENY);
         ((HttpServletResponse) response).addHeader("X-Ratelimit-Remaining", rate.getRemaining());
         ((HttpServletResponse) response).addHeader("X-Ratelimit-Limit", rate.getLimit());
+        ((HttpServletResponse) response).addHeader("X-Ratelimit-Retry-After", rate.getRefreshInterval());
     }
 
     @Override
