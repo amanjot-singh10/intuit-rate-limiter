@@ -1,16 +1,11 @@
 package com.intuit.ratelimiter.configurations;
 
-import com.intuit.ratelimiter.core.FixedWindowRateLimiter;
-import com.intuit.ratelimiter.core.RateLimiter;
-import com.intuit.ratelimiter.core.SlidingWindowRateLimiter;
 import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.filters.RateLimitFilter;
 import com.intuit.ratelimiter.helper.DefaultKeyMaker;
 import com.intuit.ratelimiter.helper.KeyMaker;
-import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import com.intuit.ratelimiter.service.RateLimiterRedisService;
 import com.intuit.ratelimiter.service.RateLimiterService;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -53,11 +48,10 @@ public class RateLimiterConfiguration {
         return rateLimiterProperties;
     }
 
-
     @Bean
-    public RateLimiterRedisConnection rateLimiterRedisConnection(RedisProperties redisProperties){
+    public RedisPropertiesConfigurations redisPropertiesConfigurations(RedisProperties redisProperties){
         RedisPropertiesConfigurations redisPropertiesConfigurations = new RedisPropertiesConfigurations();
-                redisPropertiesConfigurations.setRedisHost(redisProperties.getRedisHost());
+        redisPropertiesConfigurations.setRedisHost(redisProperties.getRedisHost());
         redisPropertiesConfigurations.setRedisPort(redisProperties.getRedisPort());
         redisPropertiesConfigurations.setRedisPassword(redisProperties.getRedisPassword());
         redisPropertiesConfigurations.setRedisPoolMaxIdle(redisProperties.getRedisPoolMaxIdle());
@@ -65,24 +59,7 @@ public class RateLimiterConfiguration {
         redisPropertiesConfigurations.setRedisPoolMinIdle(redisProperties.getRedisPoolMinIdle());
         redisPropertiesConfigurations.setRedisPoolMaxTotal(redisProperties.getRedisPoolMaxTotal());
         redisPropertiesConfigurations.setRedisPoolMaxWaitMillis(redisProperties.getRedisPoolMaxWaitMillis());
-
-        return new RateLimiterRedisConnection(redisPropertiesConfigurations);
-    }
-
-
-
-    @Bean(name = "rateLimiter")
-    @ConditionalOnProperty(value = "intuit.ratelimit.algorithm", havingValue = "SLIDING")
-    public RateLimiter slidingWindowRateLimiter(RateLimiterProperties rateLimiterProperties,
-                                                RateLimiterRedisConnection rateLimiterRedisConnection) throws FileLoadException {
-        return new SlidingWindowRateLimiter(rateLimiterRedisConnection);
-    }
-
-    @Bean(name = "rateLimiter")
-    @ConditionalOnProperty(value = "intuit.ratelimit.algorithm", havingValue = "FIXED")
-    public RateLimiter fixedWindowRateLimiter(RateLimiterProperties rateLimiterProperties,
-                                              RateLimiterRedisConnection rateLimiterRedisConnection) throws FileLoadException {
-        return new FixedWindowRateLimiter(rateLimiterRedisConnection);
+        return  redisPropertiesConfigurations;
     }
 
     @Bean
@@ -91,19 +68,19 @@ public class RateLimiterConfiguration {
     }
 
     @Bean
-    public RateLimiterService rateLimiterRedisService(RateLimiter rateLimiter, RateLimiterProperties rateLimiterProperties,
-                                                      KeyMaker keyMaker) {
-        return new RateLimiterRedisService(rateLimiter, rateLimiterProperties, keyMaker);
+    public RateLimiterService rateLimiterRedisService(RedisPropertiesConfigurations redisPropertiesConfigurations,
+                                                      RateLimiterProperties rateLimiterProperties,
+                                                      KeyMaker keyMaker) throws FileLoadException {
+        return new RateLimiterRedisService(redisPropertiesConfigurations, rateLimiterProperties, keyMaker);
     }
 
     @Bean
-    public FilterRegistrationBean<RateLimitFilter> rateLimiterFilter(RateLimiterService rateLimiterRedisService, RateLimiterProperties rateLimiterProperties){
+    public FilterRegistrationBean<RateLimitFilter> rateLimiterFilter(RateLimiterService rateLimiterRedisService){
         FilterRegistrationBean<RateLimitFilter> registrationBean
                 = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new RateLimitFilter(rateLimiterRedisService, rateLimiterProperties));
+        registrationBean.setFilter(new RateLimitFilter(rateLimiterRedisService));
         registrationBean.addUrlPatterns("*");
         registrationBean.setOrder(1);
         return registrationBean;
     }
-
 }

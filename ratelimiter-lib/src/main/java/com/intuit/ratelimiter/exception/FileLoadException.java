@@ -6,7 +6,6 @@ import java.io.IOException;
 
 @Slf4j
 public class FileLoadException extends Exception{
-
     public FileLoadException(String msg) {
         super(msg);
     }

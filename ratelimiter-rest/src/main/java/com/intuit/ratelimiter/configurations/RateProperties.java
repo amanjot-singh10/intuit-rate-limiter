@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-@ToString
 @ConfigurationProperties(value = RateProperties.PREFIX, ignoreInvalidFields = false)
 public class RateProperties {
 
@@ -40,16 +39,6 @@ public class RateProperties {
         @NestedConfigurationProperty
         private Map<String, ClientPolicy> client = new HashMap<>();
 
-        @Data
-        @ToString
-        public static class MatchType {
-            private String type;
-
-            public MatchType(String type) {
-                this.type = type;
-            }
-
-        }
     }
 
 

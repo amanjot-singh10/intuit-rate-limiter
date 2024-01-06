@@ -1,6 +1,7 @@
 package com.intuit.ratelimiter.helper;
 
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
+import com.intuit.ratelimiter.constants.RateLimiterType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Locale;
@@ -24,7 +25,7 @@ public class DefaultKeyMaker implements KeyMaker{
         if(rateLimiterProperties.getService().get(service).getClient().containsKey(clientId)){
             joiner.add(clientId);
         }
-        joiner.add(rateLimiterProperties.getAlgorithm().name().toLowerCase(Locale.ROOT));
+        joiner.add(rateLimiterProperties.getAlgorithm().getKeySuffix());
         return joiner.toString();
     }
 }

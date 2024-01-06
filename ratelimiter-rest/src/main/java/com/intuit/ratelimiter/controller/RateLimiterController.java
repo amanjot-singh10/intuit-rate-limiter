@@ -17,4 +17,5 @@ public class RateLimiterController {
     public ResponseEntity<String> consume(){
         return new ResponseEntity<>("Success", HttpStatus.OK);
     }
+
 }

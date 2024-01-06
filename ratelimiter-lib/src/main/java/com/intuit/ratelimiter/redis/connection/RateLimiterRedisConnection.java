@@ -12,7 +12,6 @@ public class RateLimiterRedisConnection {
 
     private RedissonClient redisClient = null;
 
-    //TODO Provide more options than just useSingleServer
     public RateLimiterRedisConnection(RedisPropertiesConfigurations redisPropertiesConfigurations){
         log.info("Creating Redis connection with config {}",redisPropertiesConfigurations);
         Config config = new Config();

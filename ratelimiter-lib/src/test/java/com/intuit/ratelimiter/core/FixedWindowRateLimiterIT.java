@@ -3,7 +3,6 @@ package com.intuit.ratelimiter.core;
 import com.intuit.ratelimiter.configurations.RateLimiterProperties;
 import com.intuit.ratelimiter.configurations.RedisPropertiesConfigurations;
 import com.intuit.ratelimiter.exception.FileLoadException;
-import com.intuit.ratelimiter.exception.RateNotFound;
 import com.intuit.ratelimiter.helper.DefaultKeyMaker;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
@@ -36,15 +35,13 @@ public class FixedWindowRateLimiterIT {
                 .getResourceAsStream("application-redis.yml");
         Yaml yaml = new Yaml(new Constructor(RedisPropertiesConfigurations.class, new LoaderOptions()));
         redisPropertiesConfigurations = yaml.load(inputStream);
-        rateLimiterRedisConnection = new RateLimiterRedisConnection(redisPropertiesConfigurations);
-        fixedWindowRateLimiter = new FixedWindowRateLimiter(rateLimiterRedisConnection);
         rateLimiterProperties = RateLimiterPropertiesUtil.getRateLimiterProperty("application-ratelimit-fixed.yml");
-        rateLimiterService = new RateLimiterRedisService(fixedWindowRateLimiter, rateLimiterProperties, new DefaultKeyMaker());
+        rateLimiterService = new RateLimiterRedisService(redisPropertiesConfigurations, rateLimiterProperties, new DefaultKeyMaker());
     }
 
     @ParameterizedTest
     @CsvSource({"testA, serviceA", "testA, serviceB", "testB, serviceB"})
-    public void testFixedTryConsume(String clientId, String service) throws RateNotFound {
+    public void testFixedTryConsume(String clientId, String service) {
         Rate rate1 = rateLimiterService.consume(clientId, service);
         int limit = rateLimiterProperties.getService().get(service)
                 .getClient().get(clientId).getClientLimit();

@@ -2,7 +2,7 @@ package com.intuit.ratelimiter.core;
 
 import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.exception.FileLoadException;
-import com.intuit.ratelimiter.exception.RateNotFound;
+import com.intuit.ratelimiter.exception.RateProcessingException;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +14,7 @@ import org.redisson.client.codec.StringCodec;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -25,8 +24,7 @@ public class SlidingWindowRateLimiterTest {
     private RateLimiterRedisConnection rateLimiterRedisConnectionMock;
     private RedissonClient redissonClientMock;
 
-    @BeforeEach
-    public void setup() throws FileLoadException {
+    public SlidingWindowRateLimiterTest() throws FileLoadException {
         rateLimiterRedisConnectionMock = mock(RateLimiterRedisConnection.class);
         redissonClientMock = mock(RedissonClient.class);
         when(rateLimiterRedisConnectionMock.getRedisClient()).thenReturn(redissonClientMock);
@@ -34,14 +32,13 @@ public class SlidingWindowRateLimiterTest {
     }
 
     @Test
-    public void testTryConsume() throws RateNotFound {
+    public void testTryConsume(){
         String key = "testKey";
         SlidingWindowRateLimiter rateLimiterSpy = spy(rateLimiterTest);
         List<Object> mock1 = new ArrayList<>();
         mock1.add("10");mock1.add("60"); mock1.add("9");
         List<Object> mock = new ArrayList<>();
         mock.add("ALLOW"); mock.add(mock1);
-
         RScript scriptMock = mock(RScript.class);
         when(redissonClientMock.getScript(StringCodec.INSTANCE)).thenReturn(scriptMock);
         Object[] params = new Object[] {10, 60};
@@ -61,5 +58,28 @@ public class SlidingWindowRateLimiterTest {
                 eq(RScript.ReturnType.MULTI),
                 anyList(),
                 eq(params));
+    }
+
+    @Test
+    public void testTryConsumeException(){
+        String key = "testKey";
+        SlidingWindowRateLimiter rateLimiterSpy = spy(rateLimiterTest);
+        List<Object> mock1 = new ArrayList<>();
+        mock1.add("10");mock1.add("60"); mock1.add("9");
+        List<Object> mock = new ArrayList<>();
+        mock.add("ALLOW"); mock.add(mock1);
+        RScript scriptMock = mock(RScript.class);
+        when(redissonClientMock.getScript(StringCodec.INSTANCE)).thenReturn(scriptMock);
+        Object[] params = new Object[] {10, 60};
+        when(scriptMock.eval(anyString(), eq(RScript.Mode.READ_WRITE), anyString() , eq(RScript.ReturnType.MULTI), anyList(), eq(params)))
+                .thenReturn(null); // Adjust the values as needed
+
+        RateProcessingException thrown = assertThrows(
+                RateProcessingException.class,
+                () -> rateLimiterSpy.checkLimit(key,10, 60),
+                "Expected checkLimit() to throw, but it didn't"
+        );
+        assertTrue(thrown.getMessage().contains("Couldn't find the Rate in Redis"));
+
     }
 }

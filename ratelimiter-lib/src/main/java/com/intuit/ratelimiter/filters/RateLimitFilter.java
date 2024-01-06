@@ -1,7 +1,6 @@
 package com.intuit.ratelimiter.filters;
 
-import com.intuit.ratelimiter.configurations.RateLimiterProperties;
-import com.intuit.ratelimiter.exception.RateNotFound;
+import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.service.RateLimiterService;
 import jakarta.servlet.*;
@@ -19,11 +18,9 @@ public class RateLimitFilter implements Filter {
     private static final String CLIENT_HEADER = "clientId";
     private static final String SERVICE_HEADER = "serviceId";
     RateLimiterService rateLimiterService;
-    RateLimiterProperties rateLimiterProperties;
 
-    public RateLimitFilter(RateLimiterService rateLimiterService, RateLimiterProperties rateLimiterProperties) {
+    public RateLimitFilter(RateLimiterService rateLimiterService) {
         this.rateLimiterService = rateLimiterService;
-        this.rateLimiterProperties = rateLimiterProperties;
     }
 
     @Override
@@ -37,27 +34,24 @@ public class RateLimitFilter implements Filter {
         String serviceId = ((HttpServletRequest) request).getHeader(SERVICE_HEADER);
         log.info("Rate Limit filter:  Request for serviceId - {}, clientId - {} ", serviceId, clientId);
         String uri = ((HttpServletRequest) request).getRequestURI();
-        Rate rate = null;
-        try {
-            rate = rateLimiterService.consume(clientId, serviceId);
-        } catch (RateNotFound e) {
-            response.getOutputStream().write("Couldn't find the rate".getBytes());
-            return;
-        }
+        Rate rate = rateLimiterService.consume(clientId, serviceId);
+        generateHeaders(response, rate);
+        ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_OK);
         if (rate.getStatus().isPermit() == 0) {
             log.warn("Request rejected for serviceId - {}, clientId - {} as limit exceeded !!", serviceId,clientId);
+            ((HttpServletResponse) response).setStatus(RESPONSE_CODE_DENY);
             response.getOutputStream().write("Too Many Requests !!".getBytes());
             return;
         }
-        generateResponse(response, rate);
         chain.doFilter(request, response);
     }
 
-    public void generateResponse(ServletResponse response, Rate rate) {
-        ((HttpServletResponse) response).setStatus(RESPONSE_CODE_DENY);
+    public void generateHeaders(ServletResponse response, Rate rate) {
         ((HttpServletResponse) response).addHeader("X-Ratelimit-Remaining", rate.getRemaining());
         ((HttpServletResponse) response).addHeader("X-Ratelimit-Limit", rate.getLimit());
-        ((HttpServletResponse) response).addHeader("X-Ratelimit-Retry-After", rate.getRefreshInterval());
+        if(rate.getStatus().isPermit() == 0) {
+            ((HttpServletResponse) response).addHeader("X-Ratelimit-Retry-After", rate.getRefreshInterval());
+        }
     }
 
     @Override
