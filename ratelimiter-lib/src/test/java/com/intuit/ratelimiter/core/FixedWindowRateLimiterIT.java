@@ -26,7 +26,6 @@ public class FixedWindowRateLimiterIT {
     private RateLimiterRedisConnection rateLimiterRedisConnection;
 
     private RateLimiterService rateLimiterService;
-    FixedWindowRateLimiter fixedWindowRateLimiter;
     RateLimiterProperties rateLimiterProperties;
 
     public FixedWindowRateLimiterIT() throws FileLoadException, IOException {
@@ -47,13 +46,13 @@ public class FixedWindowRateLimiterIT {
                 .getClient().get(clientId).getClientLimit();
 
         int counter= 1;
-        Assertions.assertEquals(String.valueOf(limit),rate1.getLimit());
+        Assertions.assertEquals(limit,rate1.getLimit());
 
         if(limit >= counter)
             Assertions.assertEquals("ALLOW",rate1.getStatus().name());
         else
             Assertions.assertEquals("DENY",rate1.getStatus().name());
-        Assertions.assertEquals(String.valueOf(limit-1),rate1.getRemaining());
+        Assertions.assertEquals(limit-counter,rate1.getRemaining());
 
         counter++;
         Rate rate2 = rateLimiterService.consume(clientId, service);
@@ -61,8 +60,8 @@ public class FixedWindowRateLimiterIT {
             Assertions.assertEquals("ALLOW",rate2.getStatus().name());
         else
             Assertions.assertEquals("DENY",rate2.getStatus().name());
-        Assertions.assertEquals(String.valueOf(limit),rate2.getLimit());
-        Assertions.assertEquals(String.valueOf(limit-2),rate2.getRemaining());
+        Assertions.assertEquals(limit,rate2.getLimit());
+        Assertions.assertEquals(limit-counter,rate2.getRemaining());
 
         counter++;
         Rate rate3 = rateLimiterService.consume(clientId, service);
@@ -70,8 +69,8 @@ public class FixedWindowRateLimiterIT {
             Assertions.assertEquals("ALLOW",rate3.getStatus().name());
         else
             Assertions.assertEquals("DENY",rate3.getStatus().name());
-        Assertions.assertEquals(String.valueOf(limit),rate3.getLimit());
-        Assertions.assertEquals((limit-counter<0 ? 0+"":(limit-counter)+""),rate3.getRemaining());
+        Assertions.assertEquals(limit,rate3.getLimit());
+        Assertions.assertEquals((limit-counter<0 ? 0:(limit-counter)),rate3.getRemaining());
 
     }
 }

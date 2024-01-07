@@ -39,26 +39,30 @@ public class RateLimiterRedisService implements RateLimiterService {
         String key = keyMaker.key(rateLimiterProperties, serviceId, clientId);
         if (key.isEmpty()) {
             log.info("Key generated is Blank, request rejected !!");
-            return new Rate(RateLimitStatus.DENY, "0", "0", "0");
+            return new Rate(RateLimitStatus.DENY, 0,0,0,0);
         }
         log.info("Generated Key - {}", key);
-        Pair<Integer, Integer> limitPair = getPolicyLimit(rateLimiterProperties, serviceId, clientId);
+        Rate rate = getPolicyLimit(rateLimiterProperties, serviceId, clientId);
 
         RateLimiter rateLimiter = rateLimiterFactory.getRateLimiter(rateLimiterProperties.getAlgorithm());
-        Rate rate = rateLimiter.checkLimit(key, limitPair.getA(), limitPair.getB());
+        rate = rateLimiter.checkLimit(key, rate);
         return rate;
     }
 
-    private Pair<Integer, Integer> getPolicyLimit(RateLimiterProperties rateLimiterProperties, String serviceId, String clientId) {
+    private Rate getPolicyLimit(RateLimiterProperties rateLimiterProperties, String serviceId, String clientId) {
 
+        Rate rate = new Rate();
         int limit = rateLimiterProperties.getService().get(serviceId).getLimit();
         int refresh = rateLimiterProperties.getService().get(serviceId).getRefreshInterval();
+        int refill = rateLimiterProperties.getService().get(serviceId).getRefill();
         if (rateLimiterProperties.getService().containsKey(serviceId)
                 && rateLimiterProperties.getService().get(serviceId).getClient().containsKey(clientId)) {
             limit = rateLimiterProperties.getService().get(serviceId).getClient().get(clientId).getClientLimit();
             refresh = rateLimiterProperties.getService().get(serviceId).getClient().get(clientId).getClientRefreshInterval();
+            refill = rateLimiterProperties.getService().get(serviceId).getClient().get(clientId).getClientRefill();
         }
-        return new Pair<>(limit, refresh);
+        rate.setLimit(limit); rate.setRefreshInterval(refresh); rate.setRefill(refill);
+        return rate;
     }
 
 }

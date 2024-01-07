@@ -19,38 +19,41 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class SlidingWindowRateLimiterIT {
+public class TokenBucketRateLimiterIT {
 
     private RedisPropertiesConfigurations redisPropertiesConfigurations;
-    private RateLimiterRedisConnection rateLimiterRedisConnection;
-    private RateLimiterService rateLimiterService;
-    private SlidingWindowRateLimiter fixedWindowRateLimiter;
-    private RateLimiterProperties rateLimiterProperties;
 
-    public SlidingWindowRateLimiterIT() throws FileLoadException, IOException {
+    private RateLimiterRedisConnection rateLimiterRedisConnection;
+
+    private RateLimiterService rateLimiterService;
+    RateLimiterProperties rateLimiterProperties;
+
+    public TokenBucketRateLimiterIT() throws FileLoadException, IOException {
         InputStream inputStream = this.getClass()
                 .getClassLoader()
                 .getResourceAsStream("application-redis.yml");
         Yaml yaml = new Yaml(new Constructor(RedisPropertiesConfigurations.class, new LoaderOptions()));
         redisPropertiesConfigurations = yaml.load(inputStream);
-        rateLimiterProperties = RateLimiterPropertiesUtil.getRateLimiterProperty("application-ratelimit-sliding.yml");
+        rateLimiterProperties = RateLimiterPropertiesUtil.getRateLimiterProperty("application-ratelimit-token_bucket.yml");
         rateLimiterService = new RateLimiterRedisService(redisPropertiesConfigurations, rateLimiterProperties, new DefaultKeyMaker());
     }
 
     @ParameterizedTest
-    @CsvSource({"testA, serviceA", "testA, serviceB", "testB, serviceB"})
-    public void testSlidingTryConsume(String clientId, String service) {
+    @CsvSource({"testB, serviceB"})
+    public void testTokenTryConsume(String clientId, String service) throws InterruptedException {
+
         int limit = rateLimiterProperties.getService().get(service)
                 .getClient().get(clientId).getClientLimit();
-        Rate rate1 = rateLimiterService.consume(clientId, service);
+
         int counter= 1;
+        Rate rate1 = rateLimiterService.consume(clientId, service);
         Assertions.assertEquals(limit,rate1.getLimit());
 
         if(limit >= counter)
             Assertions.assertEquals("ALLOW",rate1.getStatus().name());
         else
             Assertions.assertEquals("DENY",rate1.getStatus().name());
-        Assertions.assertEquals(limit-counter,rate1.getRemaining());
+        Assertions.assertEquals(limit-counter<0 ? 0:(limit-counter),rate1.getRemaining());
 
         counter++;
         Rate rate2 = rateLimiterService.consume(clientId, service);
@@ -59,7 +62,7 @@ public class SlidingWindowRateLimiterIT {
         else
             Assertions.assertEquals("DENY",rate2.getStatus().name());
         Assertions.assertEquals(limit,rate2.getLimit());
-        Assertions.assertEquals(limit-counter,rate2.getRemaining());
+        Assertions.assertEquals(limit-counter<0 ? 0:(limit-counter),rate2.getRemaining());
 
         counter++;
         Rate rate3 = rateLimiterService.consume(clientId, service);
@@ -68,6 +71,17 @@ public class SlidingWindowRateLimiterIT {
         else
             Assertions.assertEquals("DENY",rate3.getStatus().name());
         Assertions.assertEquals(limit,rate3.getLimit());
-        Assertions.assertEquals(limit-counter<0 ? 0 :(limit-counter),rate3.getRemaining());
+        Assertions.assertEquals(limit-counter<0 ? 0:(limit-counter),rate3.getRemaining());
+
+        Thread.sleep(7000); // as the refillPeriod is 7 seconds
+
+        counter++;
+        Rate rate4 = rateLimiterService.consume(clientId, service);
+        if(limit >= counter)
+            Assertions.assertEquals("ALLOW",rate4.getStatus().name());
+        else
+            Assertions.assertEquals("DENY",rate4.getStatus().name());
+        Assertions.assertEquals(limit,rate4.getLimit());
+        Assertions.assertEquals(((limit-counter+rate4.getRefill())>rate4.getLimit())?rate4.getLimit()-1:limit-counter+rate4.getRefill()-1,rate4.getRemaining()); // Added refill tokens
     }
 }

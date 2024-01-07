@@ -47,13 +47,14 @@ public class FixedWindowRateLimiterTest {
         Object[] params = new Object[] {10, 60};
         when(scriptMock.eval(anyString(), eq(RScript.Mode.READ_WRITE), any() , eq(RScript.ReturnType.MULTI), anyList(), eq(params)))
                 .thenReturn(mock); // Adjust the values as needed
-
-        Rate result = rateLimiterSpy.checkLimit(key, 10, 60);
+        Rate rate = new Rate();
+        rate.setLimit(10); rate.setRefreshInterval(60); rate.setRefill(8); rate.setRemaining(9);
+        Rate result = rateLimiterSpy.checkLimit(key, rate);
 
         assertNotNull(result);
         assertEquals(RateLimitStatus.ALLOW, result.getStatus());
-        assertEquals("60", result.getRefreshInterval());
-        assertEquals("9", result.getRemaining());
+        assertEquals(60, result.getRefreshInterval());
+        assertEquals(9, result.getRemaining());
 
         verify(scriptMock).eval(anyString(),
                 eq(RScript.Mode.READ_WRITE),
@@ -76,10 +77,11 @@ public class FixedWindowRateLimiterTest {
         Object[] params = new Object[] {10, 60};
         when(scriptMock.eval(anyString(), eq(RScript.Mode.READ_WRITE), anyString() , eq(RScript.ReturnType.MULTI), anyList(), eq(params)))
                 .thenReturn(null); // Adjust the values as needed
-
+        Rate rate = new Rate();
+        rate.setLimit(10); rate.setRefreshInterval(60); rate.setRefill(8); rate.setRemaining(9);
         RateProcessingException thrown = assertThrows(
                 RateProcessingException.class,
-                () -> rateLimiterSpy.checkLimit(key,10, 60),
+                () -> rateLimiterSpy.checkLimit(key,rate),
                 "Expected checkLimit() to throw, but it didn't"
         );
         assertTrue(thrown.getMessage().contains("Couldn't find the Rate in Redis"));

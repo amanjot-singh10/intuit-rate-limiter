@@ -1,5 +1,6 @@
 package com.intuit.ratelimiter.filters;
 
+import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.service.RateLimiterService;
@@ -37,7 +38,7 @@ public class RateLimitFilter implements Filter {
         Rate rate = rateLimiterService.consume(clientId, serviceId);
         generateHeaders(response, rate);
         ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_OK);
-        if (rate.getStatus().isPermit() == 0) {
+        if (rate.getStatus().equals(RateLimitStatus.DENY)) {
             log.warn("Request rejected for serviceId - {}, clientId - {} as limit exceeded !!", serviceId,clientId);
             ((HttpServletResponse) response).setStatus(RESPONSE_CODE_DENY);
             response.getOutputStream().write("Too Many Requests !!".getBytes());
@@ -47,10 +48,10 @@ public class RateLimitFilter implements Filter {
     }
 
     public void generateHeaders(ServletResponse response, Rate rate) {
-        ((HttpServletResponse) response).addHeader("X-Ratelimit-Remaining", rate.getRemaining());
-        ((HttpServletResponse) response).addHeader("X-Ratelimit-Limit", rate.getLimit());
-        if(rate.getStatus().isPermit() == 0) {
-            ((HttpServletResponse) response).addHeader("X-Ratelimit-Retry-After", rate.getRefreshInterval());
+        ((HttpServletResponse) response).addIntHeader("X-Ratelimit-Remaining", rate.getRemaining());
+        ((HttpServletResponse) response).addIntHeader("X-Ratelimit-Limit", rate.getLimit());
+        if(rate.getStatus().equals(RateLimitStatus.DENY)) {
+            ((HttpServletResponse) response).addIntHeader("X-Ratelimit-Retry-After", rate.getRefreshInterval());
         }
     }
 

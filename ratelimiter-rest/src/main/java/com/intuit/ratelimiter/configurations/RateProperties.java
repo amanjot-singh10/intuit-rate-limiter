@@ -23,23 +23,24 @@ public class RateProperties {
 
     @Data
     @ToString
-    public static class ClientPolicy {
-
-        private int clientRefreshInterval;
-        private int clientLimit;
-
-    }
-
-    @Data
-    @ToString
     public static class Policy {
         private int refreshInterval;
         private int limit;
+        private int refill;
 
         @NestedConfigurationProperty
         private Map<String, ClientPolicy> client = new HashMap<>();
 
     }
 
+    @Data
+    @ToString
+    public static class ClientPolicy {
+
+        private int clientRefreshInterval;
+        private int clientLimit;
+        private int clientRefill;
+
+    }
 
 }

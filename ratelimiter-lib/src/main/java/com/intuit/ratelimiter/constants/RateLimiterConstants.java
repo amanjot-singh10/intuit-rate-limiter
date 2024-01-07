@@ -8,5 +8,6 @@ public class RateLimiterConstants {
     public static final String HEADER_RESET = "X-RateLimit-Reset";
     public static final String SLIDING_WINDOW_SUFFIX = "SW";
     public static final String FIXED_WINDOW_SUFFIX = "FW";
+    public static final String TOKEN_BUCKET_SUFFIX = "TB";
 
 }

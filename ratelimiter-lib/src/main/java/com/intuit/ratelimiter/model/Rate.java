@@ -1,20 +1,18 @@
 package com.intuit.ratelimiter.model;
 
 import com.intuit.ratelimiter.constants.RateLimitStatus;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 @Data
 @ToString
+@RequiredArgsConstructor
 @AllArgsConstructor
-@NoArgsConstructor
 public class Rate {
 
     private RateLimitStatus status;
-    private String limit;
-    private String refreshInterval;
-    private String remaining;
+    private int limit;
+    private int refreshInterval;
+    private int remaining;
+    private int refill;
 
 }

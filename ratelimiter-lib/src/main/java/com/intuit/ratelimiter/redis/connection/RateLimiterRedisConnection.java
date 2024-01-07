@@ -19,8 +19,7 @@ public class RateLimiterRedisConnection {
                 .setConnectionMinimumIdleSize(redisPropertiesConfigurations.getRedisPoolMinIdle())
                 .setConnectionPoolSize(redisPropertiesConfigurations.getRedisPoolMaxTotal())
                 .setIdleConnectionTimeout(redisPropertiesConfigurations.getRedisConnectionTimeout())
-                .setConnectTimeout(redisPropertiesConfigurations.getRedisConnectionTimeout())
-                .setPassword(redisPropertiesConfigurations.getRedisPassword());
+                .setConnectTimeout(redisPropertiesConfigurations.getRedisConnectionTimeout());
         redisClient = Redisson.create(config);
     }
 

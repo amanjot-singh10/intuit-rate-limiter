@@ -5,6 +5,6 @@ import com.intuit.ratelimiter.model.Rate;
 
 
 public interface RateLimiter {
-        public Rate checkLimit(String key, int limit, int refreshInterval);
+        public Rate checkLimit(String key, Rate rate);
         public RateLimiterType getRateLimiterType();
 }

@@ -4,26 +4,26 @@ service:
   serviceA:
     limit: 10
     refreshInterval: 60
+    refill: 1
     client:
       testA:
         clientLimit: 2
         clientRefreshInterval: 78
+        clientRefill: 1
       testB:
         clientLimit: 21
         clientRefreshInterval: 45
+        clientRefill: 1
   serviceB:
     limit: 1
     refreshInterval: 10
+    refill: 1
     client:
       testA:
         clientLimit: 2
         clientRefreshInterval: 20
+        clientRefill: 1
       testB:
         clientLimit: 10
         clientRefreshInterval: 45
-  serviceC:
-    limit: 1
-    refreshInterval: 10
-  serviceD:
-    limit: 1
-    refreshInterval: 10
+        clientRefill: 1

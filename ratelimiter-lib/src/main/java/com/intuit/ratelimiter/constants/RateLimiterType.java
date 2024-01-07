@@ -14,6 +14,13 @@ public enum RateLimiterType {
         public String getKeySuffix() {
             return RateLimiterConstants.SLIDING_WINDOW_SUFFIX;
         }
+    },
+
+    TOKEN_BUCKET{
+        @Override
+        public String getKeySuffix() {
+            return RateLimiterConstants.TOKEN_BUCKET_SUFFIX;
+        }
     };
 
     public abstract String getKeySuffix();

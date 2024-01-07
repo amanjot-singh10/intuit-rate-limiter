@@ -1,10 +1,10 @@
-algorithm: FIXED
+algorithm: TOKEN_BUCKET
 enabled: true
 service:
   serviceA:
     limit: 10
     refreshInterval: 60
-    refill: 1
+    refill: 3
     client:
       testA:
         clientLimit: 2
@@ -13,11 +13,11 @@ service:
       testB:
         clientLimit: 21
         clientRefreshInterval: 45
-        clientRefill: 1
+        clientRefill: 8
   serviceB:
-    limit: 1
+    limit: 20
     refreshInterval: 10
-    refill: 1
+    refill: 3
     client:
       testA:
         clientLimit: 2
@@ -25,5 +25,13 @@ service:
         clientRefill: 1
       testB:
         clientLimit: 10
-        clientRefreshInterval: 45
-        clientRefill: 1
+        clientRefreshInterval: 7
+        clientRefill: 6
+  serviceC:
+    limit: 4
+    refreshInterval: 10
+    refill: 2
+  serviceD:
+    limit: 5
+    refreshInterval: 10
+    refill: 1

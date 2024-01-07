@@ -17,7 +17,7 @@ public class RateLimiterPropertiesTest {
             RateLimiterProperties rateLimiterProperties = RateLimiterPropertiesUtil.getRateLimiterProperty(script);
 
             Assertions.assertEquals(RateLimiterType.FIXED, rateLimiterProperties.getAlgorithm());
-            Assertions.assertEquals(4, rateLimiterProperties.getService().size());
+            Assertions.assertEquals(2, rateLimiterProperties.getService().size());
         }
 
 }

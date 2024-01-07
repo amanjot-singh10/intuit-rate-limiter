@@ -28,6 +28,8 @@ public class RateLimiterProperties {
 
         private int limit;
 
+        private int refill;
+
         private Map<String, ClientPolicy> client = new HashMap<>();
 
     }
@@ -40,5 +42,6 @@ public class RateLimiterProperties {
 
         private int clientRefreshInterval;
         private int clientLimit;
+        private int clientRefill;
     }
 }

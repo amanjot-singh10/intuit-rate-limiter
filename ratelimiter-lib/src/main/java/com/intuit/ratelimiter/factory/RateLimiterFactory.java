@@ -4,6 +4,7 @@ import com.intuit.ratelimiter.constants.RateLimiterType;
 import com.intuit.ratelimiter.core.FixedWindowRateLimiter;
 import com.intuit.ratelimiter.core.RateLimiter;
 import com.intuit.ratelimiter.core.SlidingWindowRateLimiter;
+import com.intuit.ratelimiter.core.TokenBucketRateLimiter;
 import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.exception.UnSupportedRateLimiterAlgorithm;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
@@ -40,6 +41,7 @@ public class RateLimiterFactory{
     private void initializeRateLimiters(RateLimiterRedisConnection rateLimiterRedisConnection) throws FileLoadException {
         rateLimiterCache.add(new FixedWindowRateLimiter(rateLimiterRedisConnection));
         rateLimiterCache.add(new SlidingWindowRateLimiter(rateLimiterRedisConnection));
+        rateLimiterCache.add(new TokenBucketRateLimiter(rateLimiterRedisConnection));
     }
 
 

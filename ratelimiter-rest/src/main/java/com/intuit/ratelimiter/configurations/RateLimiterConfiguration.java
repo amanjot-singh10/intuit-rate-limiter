@@ -30,6 +30,7 @@ public class RateLimiterConfiguration {
             RateLimiterProperties.Policy policyCopy = new RateLimiterProperties.Policy();
             policyCopy.setLimit(policy.getLimit());
             policyCopy.setRefreshInterval(policy.getRefreshInterval());
+            policyCopy.setRefill(policy.getRefill());
             Map<String, RateProperties.ClientPolicy> map1= policy.getClient();
             Map<String, RateLimiterProperties.ClientPolicy> map1Copy = new HashMap<>();
 
@@ -38,6 +39,7 @@ public class RateLimiterConfiguration {
                 RateLimiterProperties.ClientPolicy policy1Copy = new RateLimiterProperties.ClientPolicy();
                 policy1Copy.setClientLimit(policy1.getClientLimit());
                 policy1Copy.setClientRefreshInterval(policy1.getClientRefreshInterval());
+                policy1Copy.setClientRefill(policy1.getClientRefill());
                 map1Copy.put(key1,policy1Copy);
             }
 
@@ -79,7 +81,7 @@ public class RateLimiterConfiguration {
         FilterRegistrationBean<RateLimitFilter> registrationBean
                 = new FilterRegistrationBean<>();
         registrationBean.setFilter(new RateLimitFilter(rateLimiterRedisService));
-        registrationBean.addUrlPatterns("*");
+        registrationBean.addUrlPatterns("/ratelimiter/limit");
         registrationBean.setOrder(1);
         return registrationBean;
     }
