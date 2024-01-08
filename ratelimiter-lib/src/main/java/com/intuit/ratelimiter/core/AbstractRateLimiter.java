@@ -4,6 +4,7 @@ import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.exception.RateProcessingException;
 import com.intuit.ratelimiter.helper.ScriptLoader;
+import com.intuit.ratelimiter.model.RPolicy;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,7 @@ public abstract class AbstractRateLimiter implements RateLimiter{
                 this.scriptLoader = new ScriptLoader(scriptPath);
         }
 
-        public abstract Rate checkLimit(String key, Rate policy);
+        public abstract Rate checkLimit(String key, RPolicy rPolicy);
 
         protected Rate createRate(List<Object> resp) {
                 Rate rate = new Rate();

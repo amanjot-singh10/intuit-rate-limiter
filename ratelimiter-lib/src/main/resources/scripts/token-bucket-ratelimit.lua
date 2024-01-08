@@ -1,10 +1,9 @@
 
 
-local function headers(limit, window, refill, remaining)
+local function headers(limit, window, remaining)
   return {
     tostring(limit),
     tostring(window),
-    tostring(refill),
     tostring(remaining)
   }
 end
@@ -36,9 +35,9 @@ end
 -- Check if there are enough tokens for the operation
 if newTokens >= 1 then
     redis.call('HSET', bucketKey, 'tokens', newTokens-1)
-    local h = headers(capacity, refillPeriod, refillTokens, newTokens-1)
+    local h = headers(capacity, refillPeriod, newTokens-1)
     return {'allow', h}
 else
-    local h = headers(capacity, refillPeriod, refillTokens, newTokens)
+    local h = headers(capacity, refillPeriod, newTokens)
     return {'deny', h}
 end

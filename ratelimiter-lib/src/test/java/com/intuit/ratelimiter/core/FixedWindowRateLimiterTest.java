@@ -3,6 +3,7 @@ package com.intuit.ratelimiter.core;
 import com.intuit.ratelimiter.constants.RateLimitStatus;
 import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.exception.RateProcessingException;
+import com.intuit.ratelimiter.model.RPolicy;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,9 +48,9 @@ public class FixedWindowRateLimiterTest {
         Object[] params = new Object[] {10, 60};
         when(scriptMock.eval(anyString(), eq(RScript.Mode.READ_WRITE), any() , eq(RScript.ReturnType.MULTI), anyList(), eq(params)))
                 .thenReturn(mock); // Adjust the values as needed
-        Rate rate = new Rate();
-        rate.setLimit(10); rate.setRefreshInterval(60); rate.setRefill(8); rate.setRemaining(9);
-        Rate result = rateLimiterSpy.checkLimit(key, rate);
+        RPolicy rPolicy = new RPolicy();
+        rPolicy.setLimit(10); rPolicy.setRefreshInterval(60); rPolicy.setRefill(8);
+        Rate result = rateLimiterSpy.checkLimit(key, rPolicy);
 
         assertNotNull(result);
         assertEquals(RateLimitStatus.ALLOW, result.getStatus());
@@ -77,11 +78,11 @@ public class FixedWindowRateLimiterTest {
         Object[] params = new Object[] {10, 60};
         when(scriptMock.eval(anyString(), eq(RScript.Mode.READ_WRITE), anyString() , eq(RScript.ReturnType.MULTI), anyList(), eq(params)))
                 .thenReturn(null); // Adjust the values as needed
-        Rate rate = new Rate();
-        rate.setLimit(10); rate.setRefreshInterval(60); rate.setRefill(8); rate.setRemaining(9);
+        RPolicy rPolicy = new RPolicy();
+        rPolicy.setLimit(10); rPolicy.setRefreshInterval(60); rPolicy.setRefill(8);
         RateProcessingException thrown = assertThrows(
                 RateProcessingException.class,
-                () -> rateLimiterSpy.checkLimit(key,rate),
+                () -> rateLimiterSpy.checkLimit(key,rPolicy),
                 "Expected checkLimit() to throw, but it didn't"
         );
         assertTrue(thrown.getMessage().contains("Couldn't find the Rate in Redis"));

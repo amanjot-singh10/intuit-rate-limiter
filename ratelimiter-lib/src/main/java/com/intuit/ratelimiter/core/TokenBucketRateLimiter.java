@@ -5,6 +5,7 @@ import com.intuit.ratelimiter.constants.RateLimiterType;
 import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.exception.RateProcessingException;
 import com.intuit.ratelimiter.helper.ScriptLoader;
+import com.intuit.ratelimiter.model.RPolicy;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +24,11 @@ public class TokenBucketRateLimiter extends AbstractRateLimiter{
     }
 
     @Override
-    public Rate checkLimit(String key, Rate policy) {
+    public Rate checkLimit(String key, RPolicy rPolicy) {
         log.info("Checking Rate Limit for key - {}, limit - {}, refreshInterval - {} and refill - {}",
-                key, policy.getLimit(), policy.getRefreshInterval(), policy.getRefill());
+                key, rPolicy.getLimit(), rPolicy.getRefreshInterval(), rPolicy.getRefill());
         List<Object> keys = Arrays.asList(key);
-        Object[] params = new Object[]{policy.getLimit(), policy.getRefill(), policy.getRefreshInterval()};
+        Object[] params = new Object[]{rPolicy.getLimit(), rPolicy.getRefill(), rPolicy.getRefreshInterval()};
         RScript script = rateLimiterRedisConnection.getRedisClient().getScript(StringCodec.INSTANCE);
         List<Object> resp = null;
         try {
@@ -42,17 +43,6 @@ public class TokenBucketRateLimiter extends AbstractRateLimiter{
         }
         Rate rate = createRate(resp);
         log.info("Rate Status for key - {} is {}", key, rate);
-        return rate;
-    }
-
-    protected Rate createRate(List<Object> resp) {
-        Rate rate = new Rate();
-        rate.setStatus(RateLimitStatus.valueOf(((String)resp.get(0)).toUpperCase(Locale.ROOT)));
-        List<Object> output = (ArrayList<Object>)resp.get(1);
-        rate.setLimit(Integer.valueOf((String) output.get(0)));
-        rate.setRefreshInterval(Integer.valueOf((String)output.get(1)));
-        rate.setRefill(Integer.valueOf((String)output.get(2)));
-        rate.setRemaining(Integer.valueOf((String)output.get(3)));
         return rate;
     }
 

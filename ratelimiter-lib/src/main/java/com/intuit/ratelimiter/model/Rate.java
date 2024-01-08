@@ -13,6 +13,5 @@ public class Rate {
     private int limit;
     private int refreshInterval;
     private int remaining;
-    private int refill;
 
 }

@@ -8,10 +8,10 @@ import com.intuit.ratelimiter.exception.FileLoadException;
 import com.intuit.ratelimiter.factory.RateLimiterFactory;
 import com.intuit.ratelimiter.helper.DefaultKeyMaker;
 import com.intuit.ratelimiter.helper.KeyMaker;
+import com.intuit.ratelimiter.model.RPolicy;
 import com.intuit.ratelimiter.model.Rate;
 import com.intuit.ratelimiter.redis.connection.RateLimiterRedisConnection;
 import lombok.extern.slf4j.Slf4j;
-import org.jboss.marshalling.Pair;
 
 @Slf4j
 public class RateLimiterRedisService implements RateLimiterService {
@@ -39,19 +39,19 @@ public class RateLimiterRedisService implements RateLimiterService {
         String key = keyMaker.key(rateLimiterProperties, serviceId, clientId);
         if (key.isEmpty()) {
             log.info("Key generated is Blank, request rejected !!");
-            return new Rate(RateLimitStatus.DENY, 0,0,0,0);
+            return new Rate(RateLimitStatus.DENY, 0,0,0);
         }
         log.info("Generated Key - {}", key);
-        Rate rate = getPolicyLimit(rateLimiterProperties, serviceId, clientId);
+        RPolicy rPolicy = getPolicyLimit(rateLimiterProperties, serviceId, clientId);
 
         RateLimiter rateLimiter = rateLimiterFactory.getRateLimiter(rateLimiterProperties.getAlgorithm());
-        rate = rateLimiter.checkLimit(key, rate);
+        Rate rate = rateLimiter.checkLimit(key, rPolicy);
         return rate;
     }
 
-    private Rate getPolicyLimit(RateLimiterProperties rateLimiterProperties, String serviceId, String clientId) {
+    private RPolicy getPolicyLimit(RateLimiterProperties rateLimiterProperties, String serviceId, String clientId) {
 
-        Rate rate = new Rate();
+        RPolicy rPolicy = new RPolicy();
         int limit = rateLimiterProperties.getService().get(serviceId).getLimit();
         int refresh = rateLimiterProperties.getService().get(serviceId).getRefreshInterval();
         int refill = rateLimiterProperties.getService().get(serviceId).getRefill();
@@ -61,8 +61,8 @@ public class RateLimiterRedisService implements RateLimiterService {
             refresh = rateLimiterProperties.getService().get(serviceId).getClient().get(clientId).getClientRefreshInterval();
             refill = rateLimiterProperties.getService().get(serviceId).getClient().get(clientId).getClientRefill();
         }
-        rate.setLimit(limit); rate.setRefreshInterval(refresh); rate.setRefill(refill);
-        return rate;
+        rPolicy.setLimit(limit); rPolicy.setRefreshInterval(refresh); rPolicy.setRefill(refill);
+        return rPolicy;
     }
 
 }

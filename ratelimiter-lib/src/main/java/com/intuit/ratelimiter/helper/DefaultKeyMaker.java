@@ -22,9 +22,7 @@ public class DefaultKeyMaker implements KeyMaker{
             return joiner.toString();
         }
         joiner.add(service);
-        if(rateLimiterProperties.getService().get(service).getClient().containsKey(clientId)){
-            joiner.add(clientId);
-        }
+        joiner.add(clientId);
         joiner.add(rateLimiterProperties.getAlgorithm().getKeySuffix());
         return joiner.toString();
     }

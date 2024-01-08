@@ -16,7 +16,7 @@ redis:
 
 intuit:
   ratelimit:
-    algorithm: FIXED
+    algorithm: TOKEN_BUCKET
     enabled: true
     service:
       serviceZ:

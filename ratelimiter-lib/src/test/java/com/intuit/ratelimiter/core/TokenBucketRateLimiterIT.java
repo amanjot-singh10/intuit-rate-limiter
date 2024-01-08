@@ -44,6 +44,8 @@ public class TokenBucketRateLimiterIT {
 
         int limit = rateLimiterProperties.getService().get(service)
                 .getClient().get(clientId).getClientLimit();
+        int refill = rateLimiterProperties.getService().get(service)
+                .getClient().get(clientId).getClientRefill();
 
         int counter= 1;
         Rate rate1 = rateLimiterService.consume(clientId, service);
@@ -82,6 +84,6 @@ public class TokenBucketRateLimiterIT {
         else
             Assertions.assertEquals("DENY",rate4.getStatus().name());
         Assertions.assertEquals(limit,rate4.getLimit());
-        Assertions.assertEquals(((limit-counter+rate4.getRefill())>rate4.getLimit())?rate4.getLimit()-1:limit-counter+rate4.getRefill()-1,rate4.getRemaining()); // Added refill tokens
+        Assertions.assertEquals(((limit-counter+refill)>rate4.getLimit())?rate4.getLimit()-1:limit-counter+refill-1,rate4.getRemaining()); // Added refill tokens
     }
 }
